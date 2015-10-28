@@ -48,11 +48,32 @@ def fix_diff(d, g):
 	
 	if '-' in d:
 		d.remove('-')
-	
-	g[1] -= 1
+		g[1] -= 1
 	
 	return d, g
 	
+class MyDiff(object):
+	def __init__(self, head, g, lines):
+		self.head = head
+		self.g = g
+		self.lines = lines
+	
+	def combine(self):
+		l = '@@ -{},{} +{},{} @@\n'.format(*self.g)
+		return self.head + [l] + self.lines
+	
+	def apply(self, r):
+		filename_patch = os.path.join(root, 'patch.diff')
+		
+		with open(filename_patch, 'w') as f:
+			f.writelines(self.combine())
+		
+		#res = r.git.execute(['git', 'apply', '--ignore-whitespace', '--check', filename_patch])
+		
+		#res = r.git.execute(['git', 'apply', '-3', '--ignore-whitespace', filename_patch])
+		res = r.git.execute(['git', 'apply', '--ignore-whitespace', filename_patch])
+		print 'res',repr(res)
+
 def create_diff(lines_a, lines_b, filename):
 	g = difflib.unified_diff(lines_a, lines_b, 'a/'+filename, 'b/'+filename)
 
@@ -73,7 +94,6 @@ def create_diff(lines_a, lines_b, filename):
 	
 	d, g = fix_diff(d, g)
 	
-
 	
 	#for l in d:
 	#	print repr(l)
@@ -104,7 +124,7 @@ def create_diff(lines_a, lines_b, filename):
 		#	d[-1] = d[-1] + '\n'
 		#	d.append('\\ No newline at end of file')
 	
-	return header + d
+	return MyDiff(header[:2], g, d)
 
 def apply_diff(patch, raw):
 
@@ -116,10 +136,10 @@ def apply_diff(patch, raw):
 	lines_b = raw.split('\n')
 
 	# create diff between two files
-
-	d = create_diff(lines_a, lines_b, patch.page.path)
-
-	if not d:
+	
+	dif = create_diff(lines_a, lines_b, patch.page.path+'.md')
+	
+	if not dif.lines:
 		print 'no diff'
 		#raw_input()
 		#sys.exit(0)
@@ -127,29 +147,26 @@ def apply_diff(patch, raw):
 	
 	print 'fixed patch lines'
 	print
-	for l in d:
+	for l in dif.lines:
 		print repr(l)
 	print
 	#raw_input()
 
 	# apply diff
 	
-	
-	filename_patch = os.path.join(root, 'patch.diff')
-
-	with open(filename_patch, 'w') as f:
-		f.writelines(d)
-	
-	#res = r.git.execute(['git', 'apply', '--ignore-whitespace', '--check', filename_patch])
-		
-	try:	
-		#res = r.git.execute(['git', 'apply', '-3', '--ignore-whitespace', filename_patch])
-		res = r.git.execute(['git', 'apply', '--ignore-whitespace', filename_patch])
-		print 'res',repr(res)
+	try:
+		dif.apply(r)
 	except Exception as e:
-		return str(e)
-
+		print 'e',e
 		
+		dif.g[1] -= 1
+		dif.g[3] -= 1
+		try:
+			dif.apply(r)
+		except Exception as e:
+			print 'e',e
+			return str(e)
+	
 	dl = r.index.diff(None)
 	do = dl[0]
 	print do.a_path
@@ -157,63 +174,77 @@ def apply_diff(patch, raw):
 	r.index.add([do.a_path])
 	c = r.index.commit('auto patch of {}'.format(do.a_path))
 	print c
-		
-
 	
 	#raw_input()
 	return c
 
 ####################################################
 
+def assert_dir(path):
+	d = os.path.dirname(path)
+	try:
+		os.makedirs(d)
+	except:
+		pass
+
 def get_build(src, dst):
-    if requires_update(src, dst):
-        print 'rebuilding'
+	if requires_update(src, dst):
+		print 'rebuilding'
 
-        raw = get_contents(src)
+		raw = get_contents(src)
 
-        body = markdown.markdown(raw)
+		body = markdown.markdown(raw)
+		
+		assert_dir(dst)
+		
+		with open(dst, 'w') as f:
+			f.write(body)
+	else:
+		with open(dst, 'r') as f:
+			body = f.read()
 
-        with open(dst, 'w') as f:
-            f.write(body)
-    else:
-        with open(dst, 'r') as f:
-            body = f.read()
-
-    return body
+	return body
 
 def get_mtime(path):
-    try:
-        return time.ctime(os.path.getmtime(path))
-    except IOError, WindowsError:
-        try:
-            os.makedirs(os.path.dirname(path))
-        except OSError:
-            pass
-        
-        with open(path, 'w') as f:
-            f.write('hi')
+	try:
+		return time.ctime(os.path.getmtime(path))
+	#except IOError, WindowsError:
+	except:
+		return 0
 		
-        return time.ctime(os.path.getmtime(path))
-   
+		try:
+			os.makedirs(os.path.dirname(path))
+		except OSError:
+			pass
+		
+		#with open(path, 'w') as f:
+		#	f.write('hi')
+		
+		#try:
+		#return time.ctime(os.path.getmtime(path))
+		#except:
+		#	return 0
+	pass
+
 def requires_update(src, dst):
-    s = get_mtime(src)
-    d = get_mtime(dst)
-    return s > d
+	if not os.path.exists(dst):
+		return True
+
+	s = get_mtime(src)
+	d = get_mtime(dst)
+	return s > d
 
 def get_contents(path):
-    try:
-        with open(path, 'r') as f:
-            return f.read()
-    except IOError:
-        try:
-            os.makedirs(os.path.dirname(path))
-        except OSError:
-            pass
-        
-        with open(path, 'w') as f:
-            pass
-    
-        return ''
+	#try:
+	with open(path, 'r') as f:
+		return f.read()
+	#except IOError:
+	#    try:
+	#        os.makedirs(os.path.dirname(path))
+	##    except OSError:
+	#        pass
+	#    
+	#    return 'file not found = {}'.format(repr(path))
 
 def edit_save(request):
 	#try:
@@ -226,16 +257,16 @@ def edit_save(request):
 	print 'raw',repr(raw)
 	print
 	
-	
 	patch = Patch.objects.get(pk=patch_id)
 	
 	res = apply_diff(patch, raw)
 	
-	return HttpResponseRedirect('/wiki/page?p={}'.format(patch.page.path))
+	return HttpResponseRedirect('{}'.format(patch.page.path))
 	
 	#except Exception as e:
 	#	#return HttpResponse(str(e))
 	#	raise e
+	pass
 	
 def edit(request):
 	if not (request.method == 'POST'):
@@ -259,38 +290,31 @@ def edit(request):
 
 	return render(request, 'wiki/edit.html', c)
 
-def page(request):
-
-	print 'page view'
-
-	try:
-		path = request.GET['p']
-	except Exception as e:
-		return HttpResponse(str(e))
+def page(request, path0):
 	
-	print 'path=',path
+	path = os.path.normpath(path0)
 	
 	try:
-		page = Page.objects.get(path=path)
+		page = Page.objects.get(path=path0)
 	except Exception as e:
 		page = Page()
-		page.path = path
+		page.path = path0
 		page.save()
 		#return HttpResponse(str(e))
 	
 	print 'page=',page
-
+	
 	build_path = os.path.join(build_root, path)
-	source_path = os.path.join(source_root, path)
-
+	source_path = os.path.join(source_root, path + '.md')
+	
 	body = get_build(source_path, build_path)
-
+	
 	# get HEAD commit string
 	r = git.Repo(source_root)
 	s = r.head.commit.__str__()
-
+	
 	print 'commit=', s
-
+	
 	# create a new Patch object
 	patch = Patch()
 	patch.page = page
@@ -300,7 +324,7 @@ def page(request):
 	print 'orig',repr(patch.orig)
 	
 	c = {
-			'path': path,
+			'path': path0,
 			'patch_id': patch.id,
 			'body': body,
 			}
