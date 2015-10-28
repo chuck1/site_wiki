@@ -1,0 +1,13 @@
+<html>
+	<body>
+		{{ path }}<br>
+		{{ branch_id }}<br>
+		{{ commit }}<br>
+		<form action="{% url 'edit' %}" method="POST">
+			{% csrf_token %}
+			<input type="hidden" name="branch_id" value="{{ branch_id }}">
+			<input type="submit" value="edit">
+		</form>
+		{{ body }}
+	</body>
+</html>
