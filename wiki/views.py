@@ -191,6 +191,26 @@ def apply_diff(patch, raw):
 	#raw_input()
 	return c
 
+def apply_diff_2(patch, raw):
+	"""
+	a simpler way of submitting changes to the repo
+	"""
+	path = patch.page.path
+	npath = os.path.normpath(path)
+	src_path = os.path.join(source_root, npath + '.md')
+	
+	print 'SRC PATH', src_path
+	
+	with open(src_path, 'w') as f:
+		f.write(raw)
+	
+	r = git.Repo(source_root)
+
+	r.index.add([src_path])
+	c = r.index.commit('auto for {}'.format(path))
+	
+	return c
+	
 ####################################################
 
 def assert_dir(path):
@@ -273,7 +293,7 @@ def edit_save(request):
 	
 	patch = Patch.objects.get(pk=patch_id)
 	
-	res = apply_diff(patch, raw)
+	res = apply_diff_2(patch, raw)
 	
 	return HttpResponseRedirect('{}'.format(patch.page.path))
 	
