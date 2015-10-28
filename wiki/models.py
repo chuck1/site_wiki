@@ -3,10 +3,9 @@ from django.db import models
 # Create your models here.
 
 class Page(models.Model):
-    path = models.CharField(max_length=200)
+	path = models.CharField(max_length=200)
 
-class Branch(models.Model):
-    """
-    """
-    pass
+class Patch(models.Model):
+	page = models.ForeignKey(Page)
+	orig = models.TextField()
 

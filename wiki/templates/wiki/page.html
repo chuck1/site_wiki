@@ -1,13 +1,14 @@
 <html>
 	<body>
-		{{ path }}<br>
-		{{ branch_id }}<br>
-		{{ commit }}<br>
+		path={{ path }}<br>
+		patch_id={{ patch_id }}<br>
 		<form action="{% url 'edit' %}" method="POST">
 			{% csrf_token %}
-			<input type="hidden" name="branch_id" value="{{ branch_id }}">
+			<input type="hidden" name="patch_id" value="{{ patch_id }}">
 			<input type="submit" value="edit">
 		</form>
+		{% autoescape off %}
 		{{ body }}
+		{% endautoescape %}
 	</body>
 </html>

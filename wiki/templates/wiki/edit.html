@@ -1,0 +1,13 @@
+<html>
+	<body>
+		{{ path }}<br>
+		{{ patch_id }}<br>
+		<form id="form_edit" action="{% url 'edit_save' %}" method="POST">
+			{% csrf_token %}
+			<input type="hidden" name="patch_id" value="{{ patch_id }}">
+			
+			<input type="submit" value="save">
+		</form>
+		<textarea form="form_edit" name="raw" rows="10">{{ raw }}</textarea>
+	</body>
+</html>
