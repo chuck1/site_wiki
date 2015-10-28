@@ -59,9 +59,19 @@ class MyDiff(object):
 		self.lines = lines
 	
 	def combine(self):
-		l = '@@ -{},{} +{},{} @@\n'.format(*self.g)
+		s0 = ',{}'.format(self.g[1]) if self.g[1] else ''
+		
+		s1 = ',{}'.format(self.g[3]) if self.g[3] else ''
+		
+		l = '@@ -{}{} +{}{} @@\n'.format(
+			self.g[0],
+			s0,
+			self.g[2],
+			s1
+			)
+		
 		return self.head + [l] + self.lines
-	
+		
 	def apply(self, r):
 		filename_patch = os.path.join(root, 'patch.diff')
 		
@@ -82,8 +92,11 @@ def create_diff(lines_a, lines_b, filename):
 	header = d[:3]
 	d = d[3:]
 	
-	m = re.match('@@ -(\d+),(\d+) \+(\d+),(\d+) @@', header[2])
-	g = [int(x) for x in m.groups()]
+	m = re.match('@@ -(\d+)(,\d+)? \+(\d+)(,\d+)? @@', header[2])
+	if not m:
+		print 'header',header[2]
+	
+	g = [int(x.replace(',','')) if x else None for x in m.groups()]
 	print 'info', g
 	
 	print 'original patch lines'
@@ -98,7 +111,7 @@ def create_diff(lines_a, lines_b, filename):
 	#for l in d:
 	#	print repr(l)
 	
-	header[2] = '@@ -{},{} +{},{} @@\n'.format(g[0], g[1], g[2], g[3])
+	#header[2] = '@@ -{},{} +{},{} @@\n'.format(g[0], g[1], g[2], g[3])
 	
 	if d:
 		h = d
@@ -245,6 +258,7 @@ def get_contents(path):
 	#        pass
 	#    
 	#    return 'file not found = {}'.format(repr(path))
+	pass
 
 def edit_save(request):
 	#try:
