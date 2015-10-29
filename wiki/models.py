@@ -7,5 +7,7 @@ class Page(models.Model):
 
 class Patch(models.Model):
 	page = models.ForeignKey(Page)
+	commit_orig = models.CharField(max_length=200)
 	orig = models.TextField()
+	commit_edit = models.CharField(max_length=200)
 

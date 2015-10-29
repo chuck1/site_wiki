@@ -198,16 +198,34 @@ def apply_diff_2(patch, raw):
 	path = patch.page.path
 	npath = os.path.normpath(path)
 	src_path = os.path.join(source_root, npath + '.md')
-	
+
 	print 'SRC PATH', src_path
+
+	r = git.Repo(source_root)
+
+	# switch to my unique branch
+	
+	branch = r.create_head('auto_{}'.format(patch.id), patch.commit_orig)
+	r.head.reference = branch
+	assert not r.head.is_detached
+	r.head.reset(index=True, working_tree=True)
+	
+	# edit file
 	
 	with open(src_path, 'w') as f:
 		f.write(raw)
 	
-	r = git.Repo(source_root)
-
+	# commit
+	
 	r.index.add([src_path])
 	c = r.index.commit('auto for {}'.format(path))
+	
+	# merge
+	
+	r.heads.master.checkout()
+	
+	#merge_base = 
+	
 	
 	return c
 	
@@ -353,8 +371,9 @@ def page(request, path0):
 	patch = Patch()
 	patch.page = page
 	patch.orig = get_contents(source_path)
+	patch.commit_orig = s
 	patch.save()
-
+	
 	print 'orig',repr(patch.orig)
 	
 	c = {
