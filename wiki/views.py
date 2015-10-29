@@ -8,7 +8,7 @@ import re
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 
-from .models import Page, Patch
+from .models import Page, Patch, Lock
 
 # Create your views here.
 
@@ -199,8 +199,6 @@ def apply_diff_2(patch, raw):
 	npath = os.path.normpath(path)
 	src_path = os.path.join(source_root, npath + '.md')
 
-	print 'SRC PATH', src_path
-
 	r = git.Repo(source_root)
 
 	# switch to my unique branch
@@ -212,22 +210,159 @@ def apply_diff_2(patch, raw):
 	
 	# edit file
 	
+	print 'CONTENTS', repr(get_contents(src_path))
+	
+	print 'SRC PATH', src_path
 	with open(src_path, 'w') as f:
 		f.write(raw)
 	
 	# commit
 	
-	r.index.add([src_path])
+	diffs = r.index.diff(None)
+	print 'DIFFS'
+	for d in diffs:
+		print '  {}'.format(d.a_path)
+	
+	r.index.add([diffs[0].a_path])
 	c = r.index.commit('auto for {}'.format(path))
 	
+	print 'HEAD  ', r.head.reference
+	print 'COMMIT', str(c)[:8], c.message
+	
+	diffs = r.index.diff(None)
+	print 'DIFFS'
+	for d in diffs:
+		print '  {}'.format(d.a_path)
+	
 	# merge
+	master = r.heads.master
 	
-	r.heads.master.checkout()
+	master.checkout()
 	
-	#merge_base = 
+	merge_base = r.merge_base(branch, master)
 	
+	#r.index.merge_tree(master, base=merge_base)
+	r.index.merge_tree(branch, base=merge_base)
 	
+	c = r.index.commit('auto merge', parent_commits=(branch.commit, master.commit))
+	
+	# trying to fix
+	#r.head.reference = master
+	#assert not r.head.is_detached
+	#r.head.reset(index=True, working_tree=True)
+	
+	r.head.reset(c, index=True, working_tree=True)
+	
+	#master.commit = branch.commit
+	#r.head.reference = master
+	
+	print 'HEAD  ', r.head.reference
+	print 'COMMIT', str(c)[:8], c.message
 	return c
+
+def apply_diff_3(patch, raw):
+	"""
+	using mostly execute commands
+	"""
+	path = patch.page.path
+	npath = os.path.normpath(path)
+	src_path = os.path.join(source_root, npath + '.md')
+	
+	r = git.Repo(source_root)
+	
+	r.git.execute(['git', 'checkout', patch.commit_orig])
+	r.git.execute(['git', 'checkout', '-b', 'auto_{}'.format(patch.id)])
+	
+	'''
+	# switch to my unique branch
+	
+	branch = r.create_head('auto_{}'.format(patch.id), patch.commit_orig)
+	r.head.reference = branch
+	assert not r.head.is_detached
+	r.head.reset(index=True, working_tree=True)
+	
+	# edit file
+	
+	print 'CONTENTS', repr(get_contents(src_path))
+	
+	print 'SRC PATH', src_path
+	'''
+	
+	with open(src_path, 'w') as f:
+		f.write(raw)
+	
+	diffs = r.index.diff(None)
+	for d in diffs:
+		print '  {}'.format(d.a_path)
+	
+	r.git.execute(['git', 'add', diffs[0].a_path])
+	r.git.execute(['git', 'commit', '-m', '\'auto for {}\''.format(path)])
+	
+	r.git.execute(['git', 'checkout', 'master'])
+	
+	branch_name = 'auto_{}'.format(patch.id)
+	
+	try:
+		r.git.execute(['git', 'merge', branch_name])
+	except Exception as e:
+		print e
+		if 'exit code 1' in str(e):
+			r.git.execute(['git', 'add', diffs[0].a_path])
+			r.git.execute(['git', 'commit', '-m', "'auto merge for {}'".format('auto_{}'.format(patch.id))])
+		else:
+			raise e
+	
+	#diffs = r.index.diff(None)
+	#if diffs:
+	#	r.git.execute(['git', 'add', diffs[0].a_path])
+	#	r.git.execute(['git', 'commit', '-m', "'auto merge for {}'".format('auto_{}'.format(patch.id))])
+	#r.git.execute(['git', 
+	
+	'''
+	# commit
+	
+	
+	print 'DIFFS'
+	
+	
+	r.index.add()
+	c = r.index.commit('auto for {}'.format(path))
+	
+	print 'HEAD  ', r.head.reference
+	print 'COMMIT', str(c)[:8], c.message
+	
+	diffs = r.index.diff(None)
+	print 'DIFFS'
+	for d in diffs:
+		print '  {}'.format(d.a_path)
+	
+	# merge
+	master = r.heads.master
+	
+	master.checkout()
+	
+	merge_base = r.merge_base(branch, master)
+	
+	#r.index.merge_tree(master, base=merge_base)
+	r.index.merge_tree(branch, base=merge_base)
+	
+	c = r.index.commit('auto merge', parent_commits=(branch.commit, master.commit))
+	
+	# trying to fix
+	#r.head.reference = master
+	#assert not r.head.is_detached
+	#r.head.reset(index=True, working_tree=True)
+	
+	r.head.reset(c, index=True, working_tree=True)
+	
+	#master.commit = branch.commit
+	#r.head.reference = master
+	
+	print 'HEAD  ', r.head.reference
+	print 'COMMIT', str(c)[:8], c.message
+	return c
+	'''
+	return 0
 	
 ####################################################
 
@@ -278,6 +413,7 @@ def get_mtime(path):
 	pass
 
 def requires_update(src, dst):
+	return True
 	if not os.path.exists(dst):
 		return True
 
@@ -298,6 +434,19 @@ def get_contents(path):
 	#    return 'file not found = {}'.format(repr(path))
 	pass
 
+def acquire_lock():
+	while True:
+		try:
+			lock = Lock.objects.create(id=0)
+		except:
+			# wait
+			print 'waiting for lock'
+			time.sleep(1)
+		else:
+			break
+	
+	return lock
+	
 def edit_save(request):
 	#try:
 	patch_id = request.POST['patch_id']
@@ -311,7 +460,10 @@ def edit_save(request):
 	
 	patch = Patch.objects.get(pk=patch_id)
 	
-	res = apply_diff_2(patch, raw)
+	# thread safety on git operations
+	lock = acquire_lock()
+	res = apply_diff_3(patch, raw)
+	lock.delete()
 	
 	return HttpResponseRedirect('{}'.format(patch.page.path))
 	
@@ -342,6 +494,78 @@ def edit(request):
 
 	return render(request, 'wiki/edit.html', c)
 
+def flt_folders(x):
+	if x[0] == '.': return False
+	_,e = os.path.splitext(x)
+	if e: return False
+	return True
+	
+def flt_files(x):
+	if x[0] == '.': return False
+	_,e = os.path.splitext(x)
+	if e: return True
+	return False
+	
+def mylistdir(dir, flt):
+	lst = os.listdir(os.path.join(source_root,dir))
+	
+	lst = filter(flt, lst)
+	
+	def srt(x,y):
+		_,e0 = os.path.splitext(x)
+		_,e1 = os.path.splitext(y)
+		
+		#print x,y
+		#print e0,e1
+		
+		if bool(e0) != bool(e1):
+			return cmp(bool(e0), bool(e1))
+		
+		return cmp(x,y)
+	
+	lst = sorted(lst, srt)
+	
+	def proc(x):
+		#print 'x',x
+		x = x.replace('\\','/')
+		#print 'x',x
+		
+		h,e = os.path.splitext(x)
+		if not e:
+			return x + '/index'
+		return h
+	
+	lst = [proc(x) for x in lst]
+	
+	def proc2(x):
+		h,t = os.path.split(x)
+		if h:
+			return '- [{}]({})'.format(h,x)
+		return '- [{}]({})'.format(t,x)
+	
+	lst = [proc2(x) for x in lst]
+	
+	return lst
+
+def sibling_link_html(dir):
+	lst = mylistdir(dir, flt_files)
+	
+	#for l in lst:
+	#	print '  {}'.format(l)
+	
+	raw = '\n'.join(lst)
+	html = markdown.markdown(raw)
+	return html
+def child_link_html(dir):
+	lst = mylistdir(dir, flt_folders)
+	
+	#for l in lst:
+	#	print '  {}'.format(l)
+	
+	raw = '\n'.join(lst)
+	html = markdown.markdown(raw)
+	return html
+	
 def page(request, path0):
 	
 	path = os.path.normpath(path0)
@@ -365,7 +589,7 @@ def page(request, path0):
 	r = git.Repo(source_root)
 	s = r.head.commit.__str__()
 	
-	print 'commit=', s
+	
 	
 	# create a new Patch object
 	patch = Patch()
@@ -374,15 +598,44 @@ def page(request, path0):
 	patch.commit_orig = s
 	patch.save()
 	
-	print 'orig',repr(patch.orig)
+	dir = os.path.dirname(path)
+	
+	h,t = os.path.split(os.path.dirname(path0))
+	
+	child_list = child_link_html(dir)
+	sibling_list = sibling_link_html(dir)
+	
+	parent_href = '/' + h + '/index' if h else '/index'
+	
+	print 'path0  {}'.format(path0)
+	print 'path   {}'.format(path)
+	print 'dir    {}'.format(dir)
+	print 'parent {}'.format(parent_href)
+	
+	#print 'commit=', s
+	#print 'orig',repr(patch.orig)
 	
 	c = {
-			'path': path0,
-			'patch_id': patch.id,
-			'body': body,
+			'path':         path0,
+			'patch_id':     patch.id,
+			'body':         body,
+			'child_list':   child_list,
+			'sibling_list': sibling_list,
+			'parent_href':  parent_href,
 			}
 
 	return render(request, 'wiki/page.html', c)
 
+def test(request):
+	
+	l = Lock.objects.create(id=0)
+	print 'created id={}'.format(l.id)
+	time.sleep(5)
+	
+	i = l.id
+	
+	l.delete()
+	
+	return HttpResponse("success<br>{}".format(i))
 
-
+	
