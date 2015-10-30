@@ -15,11 +15,15 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 
 import wiki.views
 
 urlpatterns = [
+    url(r'^accounts/login/$', auth_views.login),
+    url(r'^accounts/register/$', wiki.views.register),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^wiki/',  include('wiki.urls')),
-	url(r'^([\w\/]+)$', wiki.views.page, name='page'),
+    url(r'^([\w\/]+)$', wiki.views.page, name='page'),
 ]
+
