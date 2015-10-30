@@ -12,8 +12,8 @@ from .models import Page, Patch
 
 # Create your views here.
 
-#root = '/home/chuck/site_wiki'
-root = 'P:\\data\\site_wiki'
+root = '/home/chuck/site_wiki'
+#root = 'P:\\data\\site_wiki'
 
 source_root = os.path.join(root, 'source')
 build_root = os.path.join(root, 'build')
