@@ -1,5 +1,7 @@
+{% load staticfiles %}
 <html>
 	<head>
+		<link rel="stylesheet" type="text/css" href="/static/wiki/default.css"></link>
 		<script type="text/x-mathjax-config">
 			MathJax.Hub.Config({
 			  tex2jax: {inlineMath: [['\\(','\\)']]}
@@ -17,8 +19,15 @@
 			<input type="hidden" name="patch_id" value="{{ patch_id }}">
 			<input type="submit" value="edit">
 		</form>
-		{% autoescape off %}
-		{{ body }}
-		{% endautoescape %}
+		
+		parent<br>
+		<a href="{{ parent_href }}">{{ parent_href }}</a><br>
+		children<br>
+		{% autoescape off %}{{ child_list }}{% endautoescape %}
+		siblings<br>
+		{% autoescape off %}{{ sibling_list }}{% endautoescape %}
+		
+		{% autoescape off %}{{ body }}{% endautoescape %}
 	</body>
 </html>
+
