@@ -17,4 +17,5 @@
     - user
 	- commit string
 - add read and write permission options to Page objects
-
+- add functionality to automatrically number headings in file and across multiple files and folders
+  with a particular root folder
