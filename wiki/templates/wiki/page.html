@@ -14,6 +14,7 @@
 	<body>
 		path={{ path }}<br>
 		patch_id={{ patch_id }}<br>
+		user={{ user }}<br>
 		<form action="{% url 'edit' %}" method="POST">
 			{% csrf_token %}
 			<input type="hidden" name="patch_id" value="{{ patch_id }}">

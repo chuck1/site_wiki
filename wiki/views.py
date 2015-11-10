@@ -5,15 +5,18 @@ import git
 import difflib
 import re
 
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 
 from .models import Page, Patch, Lock
+import wiki.forms
 
 # Create your views here.
 
-#root = '/home/chuck/site_wiki'
-root = 'P:\\data\\site_wiki'
+root = '/home/chuck/site_wiki'
+#root = 'P:\\data\\site_wiki'
 
 source_root = os.path.join(root, 'source')
 build_root = os.path.join(root, 'build')
@@ -301,6 +304,8 @@ def apply_diff_3(patch, raw):
 	r.git.execute(['git', 'checkout', 'master'])
 	
 	branch_name = 'auto_{}'.format(patch.id)
+        
+        commit_message = "'auto merge for {}'".format('auto_{}'.format(patch.id))
 	
 	try:
 		r.git.execute(['git', 'merge', branch_name])
@@ -308,14 +313,17 @@ def apply_diff_3(patch, raw):
 		print e
 		if 'exit code 1' in str(e):
 			r.git.execute(['git', 'add', diffs[0].a_path])
-			r.git.execute(['git', 'commit', '-m', "'auto merge for {}'".format('auto_{}'.format(patch.id))])
+			r.git.execute(['git', 'commit', '-m', commit_message])
 		else:
 			raise e
-	
+
+        commit_str = r.head.commit.__str__()
+
 	#diffs = r.index.diff(None)
 	#if diffs:
 	#	r.git.execute(['git', 'add', diffs[0].a_path])
-	#	r.git.execute(['git', 'commit', '-m', "'auto merge for {}'".format('auto_{}'.format(patch.id))])
+        #	r.git.execute(['git', 'commit', '-m', 
+        #"'auto merge for {}'".format('auto_{}'.format(patch.id))])
 	#r.git.execute(['git', 
 	
 	'''
@@ -362,7 +370,7 @@ def apply_diff_3(patch, raw):
 	print 'COMMIT', str(c)[:8], c.message
 	return c
 	'''
-	return 0
+	return commit_str
 	
 ####################################################
 
@@ -454,24 +462,30 @@ def edit_save(request):
 	
 	raw = raw.replace('\r','')
 	
-	print
-	print 'raw',repr(raw)
-	print
+	#print
+	#print 'raw',repr(raw)
+	#print
 	
 	patch = Patch.objects.get(pk=patch_id)
 	
 	# thread safety on git operations
 	lock = acquire_lock()
-	res = apply_diff_3(patch, raw)
+	c = apply_diff_3(patch, raw)
 	lock.delete()
-	
+
+        patch.commit_edit = c
+	print 'patch.commit_edit', patch.commit_edit
+        
+        patch.save()
+
 	return HttpResponseRedirect('{}'.format(patch.page.path))
 	
 	#except Exception as e:
 	#	#return HttpResponse(str(e))
 	#	raise e
 	pass
-	
+
+@login_required
 def edit(request):
 	if not (request.method == 'POST'):
 		return HttpResponseNotFound()
@@ -565,7 +579,8 @@ def child_link_html(dir):
 	raw = '\n'.join(lst)
 	html = markdown.markdown(raw)
 	return html
-	
+
+@login_required	
 def page(request, path0):
 	
 	path = os.path.normpath(path0)
@@ -578,8 +593,6 @@ def page(request, path0):
 		page.save()
 		#return HttpResponse(str(e))
 	
-	print 'page=',page
-	
 	build_path = os.path.join(build_root, path)
 	source_path = os.path.join(source_root, path + '.md')
 	
@@ -589,10 +602,9 @@ def page(request, path0):
 	r = git.Repo(source_root)
 	s = r.head.commit.__str__()
 	
-	
-	
 	# create a new Patch object
 	patch = Patch()
+        patch.user = request.user
 	patch.page = page
 	patch.orig = get_contents(source_path)
 	patch.commit_orig = s
@@ -622,6 +634,7 @@ def page(request, path0):
 			'child_list':   child_list,
 			'sibling_list': sibling_list,
 			'parent_href':  parent_href,
+                        'user':         request.user,
 			}
 
 	return render(request, 'wiki/page.html', c)
@@ -638,4 +651,34 @@ def test(request):
 	
 	return HttpResponse("success<br>{}".format(i))
 
-	
+def register(request):
+    if request.method == 'POST':
+        nxt = request.POST['next']
+
+        form = wiki.forms.Register(request.POST)
+    
+        if form.is_valid():
+            user = User.objects.create_user(
+                form.cleaned_data['username'],
+                form.cleaned_data['email'],
+                form.cleaned_data['pass0'],)
+        
+            print 'register success'
+
+            return HttpResponse('register success')
+                    
+            return HttpResponseRedirect(
+                    '/accounts/login?next={}'.format(nxt))
+        else:
+            print 'register failure'
+    else:
+        print 'register start'
+        form = wiki.forms.Register()
+        nxt = request.GET['next']
+
+    c = {
+                'form': form,
+                'next': nxt,
+                }
+    return render(request, 'registration/register.html', c)
+
