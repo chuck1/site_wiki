@@ -9,17 +9,20 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
+from django.conf import settings
 
 from .models import Page, Patch, Lock
 import wiki.forms
+import wiki.util
+
+# markdown extensions
+import myextension
+import markdown_extension_numbering
 
 # Create your views here.
 
-root = '/home/chuck/site_wiki'
-#root = 'P:\\data\\site_wiki'
+#root = '/home/chuck/site_wiki'
 
-source_root = os.path.join(root, 'source')
-build_root = os.path.join(root, 'build')
 
 ####################################################
 
@@ -74,7 +77,7 @@ class MyDiff(object):
 			)
 		
 		return self.head + [l] + self.lines
-		
+	
 	def apply(self, r):
 		filename_patch = os.path.join(root, 'patch.diff')
 		
@@ -144,7 +147,7 @@ def create_diff(lines_a, lines_b, filename):
 
 def apply_diff(patch, raw):
 
-	r = git.Repo(source_root)
+	r = git.Repo(settings.WIKI_SRC_ROOT)
 	
 	#filename = 'a'
 	
@@ -200,9 +203,9 @@ def apply_diff_2(patch, raw):
 	"""
 	path = patch.page.path
 	npath = os.path.normpath(path)
-	src_path = os.path.join(source_root, npath + '.md')
+	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath + '.md')
 
-	r = git.Repo(source_root)
+	r = git.Repo(settings.WIKI_SRC_ROOT)
 
 	# switch to my unique branch
 	
@@ -269,9 +272,9 @@ def apply_diff_3(patch, raw):
 	"""
 	path = patch.page.path
 	npath = os.path.normpath(path)
-	src_path = os.path.join(source_root, npath + '.md')
+	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath + '.md')
 	
-	r = git.Repo(source_root)
+	r = git.Repo(settings.WIKI_SRC_ROOT)
 	
 	r.git.execute(['git', 'checkout', patch.commit_orig])
 	r.git.execute(['git', 'checkout', '-b', 'auto_{}'.format(patch.id)])
@@ -382,12 +385,31 @@ def assert_dir(path):
 		pass
 
 def get_build(src, dst):
+	'''
+	get the html for the src file and save it to dst file
+	'''
+	
 	if requires_update(src, dst):
 		print 'rebuilding'
 
+		j_data = wiki.util.get_data_file(src)
+		
 		raw = get_contents(src)
 
-		body = markdown.markdown(raw)
+		#body = markdown.markdown(raw)
+		
+		extensions=[myextension.MyExtension()]
+		
+		try:
+			numbering = j_data['numbering']
+		except:
+			pass
+		else:
+			extensions.append(markdown_extension_numbering.MyExtension(numbering))
+		
+		body = markdown.markdown(raw, extensions)
+		
+		
 		
 		assert_dir(dst)
 		
@@ -508,77 +530,10 @@ def edit(request):
 
 	return render(request, 'wiki/edit.html', c)
 
-def flt_folders(x):
-	if x[0] == '.': return False
-	_,e = os.path.splitext(x)
-	if e: return False
-	return True
-	
-def flt_files(x):
-	if x[0] == '.': return False
-	_,e = os.path.splitext(x)
-	if e: return True
-	return False
-	
-def mylistdir(dir, flt):
-	lst = os.listdir(os.path.join(source_root,dir))
-	
-	lst = filter(flt, lst)
-	
-	def srt(x,y):
-		_,e0 = os.path.splitext(x)
-		_,e1 = os.path.splitext(y)
-		
-		#print x,y
-		#print e0,e1
-		
-		if bool(e0) != bool(e1):
-			return cmp(bool(e0), bool(e1))
-		
-		return cmp(x,y)
-	
-	lst = sorted(lst, srt)
-	
-	def proc(x):
-		#print 'x',x
-		x = x.replace('\\','/')
-		#print 'x',x
-		
-		h,e = os.path.splitext(x)
-		if not e:
-			return x + '/index'
-		return h
-	
-	lst = [proc(x) for x in lst]
-	
-	def proc2(x):
-		h,t = os.path.split(x)
-		if h:
-			return '- [{}]({})'.format(h,x)
-		return '- [{}]({})'.format(t,x)
-	
-	lst = [proc2(x) for x in lst]
-	
-	return lst
 
-def sibling_link_html(dir):
-	lst = mylistdir(dir, flt_files)
 	
-	#for l in lst:
-	#	print '  {}'.format(l)
+
 	
-	raw = '\n'.join(lst)
-	html = markdown.markdown(raw)
-	return html
-def child_link_html(dir):
-	lst = mylistdir(dir, flt_folders)
-	
-	#for l in lst:
-	#	print '  {}'.format(l)
-	
-	raw = '\n'.join(lst)
-	html = markdown.markdown(raw)
-	return html
 
 @login_required	
 def page(request, path0):
@@ -593,29 +548,41 @@ def page(request, path0):
 		page.save()
 		#return HttpResponse(str(e))
 	
-	build_path = os.path.join(build_root, path)
-	source_path = os.path.join(source_root, path + '.md')
+	
+	dir = os.path.dirname(path)
+	
+	
+	
+	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
+	source_path = os.path.join(settings.WIKI_SRC_ROOT, path + '.md')
 	
 	body = get_build(source_path, build_path)
 	
+	# file data
+	j_data = wiki.util.get_data_file(source_path)
+	
 	# get HEAD commit string
-	r = git.Repo(source_root)
+	r = git.Repo(settings.WIKI_SRC_ROOT)
 	s = r.head.commit.__str__()
 	
 	# create a new Patch object
 	patch = Patch()
-        patch.user = request.user
+	patch.user = request.user
 	patch.page = page
 	patch.orig = get_contents(source_path)
 	patch.commit_orig = s
 	patch.save()
 	
-	dir = os.path.dirname(path)
+	
+	
+	
+	
+	
 	
 	h,t = os.path.split(os.path.dirname(path0))
 	
-	child_list = child_link_html(dir)
-	sibling_list = sibling_link_html(dir)
+	child_list = wiki.util.child_link_html(dir)
+	sibling_list = wiki.util.sibling_link_html(dir)
 	
 	parent_href = '/' + h + '/index' if h else '/index'
 	
@@ -623,6 +590,7 @@ def page(request, path0):
 	print 'path   {}'.format(path)
 	print 'dir    {}'.format(dir)
 	print 'parent {}'.format(parent_href)
+	print 'j data {}'.format(repr(j_data))
 	
 	#print 'commit=', s
 	#print 'orig',repr(patch.orig)

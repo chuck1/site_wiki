@@ -31,3 +31,5 @@ class Patch(models.Model):
 class Lock(models.Model):
 	def __unicode__(self):
 		return 'Lock object id={}'.format(self.id)
+
+

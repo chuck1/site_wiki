@@ -107,3 +107,8 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     'P:\\media',
 )
+
+WIKI_ROOT = 'P:\\data\\site_wiki'
+
+WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
+WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')
