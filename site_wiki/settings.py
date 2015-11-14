@@ -108,7 +108,8 @@ STATICFILES_DIRS = (
     'P:\\media',
 )
 
-WIKI_ROOT = 'P:\\data\\site_wiki'
+WIKI_ROOT = '/home/chuck/site_wiki'
+#WIKI_ROOT = 'P:\\data\\site_wiki'
 
 WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
 WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')
