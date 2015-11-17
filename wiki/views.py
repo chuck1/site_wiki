@@ -16,7 +16,8 @@ import wiki.forms
 import wiki.util
 
 # markdown extensions
-import myextension
+import markdown.extensions.tables
+import markdown_extension_blockmod
 import markdown_extension_numbering
 
 # Create your views here.
@@ -374,7 +375,7 @@ def apply_diff_3(patch, raw):
 	return c
 	'''
 	return commit_str
-	
+
 ####################################################
 
 def assert_dir(path):
@@ -398,7 +399,9 @@ def get_build(src, dst):
 
 		#body = markdown.markdown(raw)
 		
-		extensions=[myextension.MyExtension()]
+		extensions=[
+			markdown.extensions.tables.TableExtension(),
+			markdown_extension_blockmod.MyExtension()]
 		
 		try:
 			numbering = j_data['numbering']
@@ -529,11 +532,6 @@ def edit(request):
 		}
 
 	return render(request, 'wiki/edit.html', c)
-
-
-	
-
-	
 
 @login_required	
 def page(request, path0):

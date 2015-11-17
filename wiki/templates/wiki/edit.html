@@ -8,6 +8,27 @@
 			
 			<input type="submit" value="save">
 		</form>
-		<textarea form="form_edit" name="raw" rows="50" cols="100">{{ raw }}</textarea>
+		<textarea 
+			form="form_edit" 
+			name="raw" 
+			rows="50" cols="100" onkeydown="textarea_indent(this)">{{ raw }}</textarea>
+
+		
+		<script>
+		function textarea_indent(o) {
+			// doesnt prevent cursor from moving to next element in browser :(
+			if(event.keyCode===9) {
+				var v = o.value, s = o.selectionStart, e = o.selectionEnd;
+				o.value = v.substring(0, s) + '    ' + v.substring(e);
+				o.selectionStart = o.selectionEnd = s + 4;
+				return false;
+				//return true;
+				event.preventDefault();
+			}
+		}
+		</script>
+		
+		
 	</body>
 </html>
+
