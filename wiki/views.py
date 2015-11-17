@@ -534,6 +534,83 @@ def edit(request):
 	return render(request, 'wiki/edit.html', c)
 
 @login_required	
+def page_static(request, path0):
+	
+	path = os.path.normpath(path0)
+	
+	'''
+	try:
+		page = Page.objects.get(path=path0)
+	except Exception as e:
+		page = Page()
+		page.path = path0
+		page.save()
+		#return HttpResponse(str(e))
+	'''
+	
+	dir = os.path.dirname(path)
+	
+	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
+	
+	with open(build_path, 'r') as f:
+		html = f.read()
+	
+	'''
+	source_path = os.path.join(settings.WIKI_SRC_ROOT, path + '.md')
+	
+	body = get_build(source_path, build_path)
+	
+	# file data
+	j_data = wiki.util.get_data_file(source_path)
+	
+	# get HEAD commit string
+	r = git.Repo(settings.WIKI_SRC_ROOT)
+	s = r.head.commit.__str__()
+	
+	# create a new Patch object
+	patch = Patch()
+	patch.user = request.user
+	patch.page = page
+	patch.orig = get_contents(source_path)
+	patch.commit_orig = s
+	patch.save()
+	'''
+	
+	
+	'''
+	h,t = os.path.split(os.path.dirname(path0))
+	
+	child_list = wiki.util.child_link_html(dir)
+	sibling_list = wiki.util.sibling_link_html(dir)
+	
+	parent_href = '/' + h + '/index' if h else '/index'
+	
+	print 'path0  {}'.format(path0)
+	print 'path   {}'.format(path)
+	print 'dir    {}'.format(dir)
+	print 'parent {}'.format(parent_href)
+	print 'j data {}'.format(repr(j_data))
+	
+	#print 'commit=', s
+	#print 'orig',repr(patch.orig)
+	'''
+	'''
+	c = {
+			'path':         path0,
+			'patch_id':     patch.id,
+			'body':         body,
+			'child_list':   child_list,
+			'sibling_list': sibling_list,
+			'parent_href':  parent_href,
+                        'user':         request.user,
+			}
+
+	return render(request, 'wiki/page.html', c)
+	'''
+	
+	return HttpResponse(html)
+	
+@login_required	
 def page(request, path0):
 	
 	path = os.path.normpath(path0)
@@ -570,9 +647,6 @@ def page(request, path0):
 	patch.orig = get_contents(source_path)
 	patch.commit_orig = s
 	patch.save()
-	
-	
-	
 	
 	
 	

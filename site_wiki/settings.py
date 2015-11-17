@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -108,8 +109,11 @@ STATICFILES_DIRS = (
     'P:\\media',
 )
 
-WIKI_ROOT = '/home/chuck/site_wiki'
-#WIKI_ROOT = 'P:\\data\\site_wiki'
+if sys.platform == 'win32':
+	WIKI_ROOT = 'P:\\data\\site_wiki'
+else:
+	WIKI_ROOT = '/home/chuck/site_wiki'
+
 
 WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
 WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')

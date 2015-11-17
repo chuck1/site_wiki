@@ -8,5 +8,6 @@ urlpatterns = [
 		url(r'^edit_save$', views.edit_save, name='edit_save'),
 		url(r'^test$', views.test, name='test'),
 		url(r'^([\w\/]+)$', views.page, name='page'),
+		url(r'^([\w\/]+[\w\.]+\.html)$', views.page_static, name='page_static'),
 		]
 
