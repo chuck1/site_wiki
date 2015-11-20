@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'wiki',
+	'task',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -109,10 +110,15 @@ STATICFILES_DIRS = (
     'P:\\media',
 )
 
-if sys.platform == 'win32':
-	WIKI_ROOT = 'P:\\data\\site_wiki'
+import socket
+hostname = socket.gethostname()
+if hostname == 'crymal-VirtualBox':
+	WIKI_ROOT = '/media/sf_P_DRIVE/data/site_wiki'
 else:
-	WIKI_ROOT = '/home/chuck/site_wiki'
+	if sys.platform == 'win32':
+		WIKI_ROOT = 'P:\\data\\site_wiki'
+	else:
+		WIKI_ROOT = '/home/chuck/site_wiki'
 
 
 WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')

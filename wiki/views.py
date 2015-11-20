@@ -6,10 +6,11 @@ import difflib
 import re
 
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 from django.conf import settings
+import django.core.management
 
 from .models import Page, Patch, Lock
 import wiki.forms
@@ -19,11 +20,6 @@ import wiki.util
 import markdown.extensions.tables
 import markdown_extension_blockmod
 import markdown_extension_numbering
-
-# Create your views here.
-
-#root = '/home/chuck/site_wiki'
-
 
 ####################################################
 
@@ -299,6 +295,7 @@ def apply_diff_3(patch, raw):
 		f.write(raw)
 	
 	diffs = r.index.diff(None)
+	print 'DIFFS'
 	for d in diffs:
 		print '  {}'.format(d.a_path)
 	
@@ -510,6 +507,16 @@ def edit_save(request):
 	#	raise e
 	pass
 
+@user_passes_test(lambda u: u.is_superuser)
+def process_data(request):
+	# call
+	django.core.management.call_command('process_data')
+	
+	# redirect
+	page_id = request.POST['page_id']
+	page = Page.objects.get(pk=page_id)
+	return HttpResponseRedirect('{}'.format(page.path))
+	
 @login_required
 def edit(request):
 	if not (request.method == 'POST'):
@@ -523,7 +530,7 @@ def edit(request):
 
 	patch = Patch.objects.get(pk=patch_id)
 
-	print 'orig',repr(patch.orig)
+	#print 'orig',repr(patch.orig)
 	
 	c = {
 		'path': patch.page.path,
@@ -648,9 +655,6 @@ def page(request, path0):
 	patch.commit_orig = s
 	patch.save()
 	
-	
-	
-	
 	h,t = os.path.split(os.path.dirname(path0))
 	
 	child_list = wiki.util.child_link_html(dir)
@@ -668,14 +672,15 @@ def page(request, path0):
 	#print 'orig',repr(patch.orig)
 	
 	c = {
-			'path':         path0,
-			'patch_id':     patch.id,
-			'body':         body,
-			'child_list':   child_list,
-			'sibling_list': sibling_list,
-			'parent_href':  parent_href,
-                        'user':         request.user,
-			}
+		'page':			page,
+		'path':         path0,
+		'patch_id':     patch.id,
+		'body':         body,
+		'child_list':   child_list,
+		'sibling_list': sibling_list,
+		'parent_href':  parent_href,
+		'user':         request.user,
+		}
 
 	return render(request, 'wiki/page.html', c)
 
@@ -721,4 +726,7 @@ def register(request):
                 'next': nxt,
                 }
     return render(request, 'registration/register.html', c)
+
+
+
 

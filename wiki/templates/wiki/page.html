@@ -14,12 +14,23 @@
 	<body>
 		path={{ path }}<br>
 		patch_id={{ patch_id }}<br>
-		user={{ user }}<br>
-		<form action="{% url 'edit' %}" method="POST">
-			{% csrf_token %}
-			<input type="hidden" name="patch_id" value="{{ patch_id }}">
-			<input type="submit" value="edit">
-		</form>
+		user={{ user }} ({{ user.is_superuser }})<br>
+		
+		<table>
+			<tr><td>
+				<form action="{% url 'edit' %}" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="patch_id" value="{{ patch_id }}">
+					<input type="submit" value="edit">
+				</form>
+			</td><td>	
+				<form action="{% url 'process_data' %}" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="page_id" value="{{ page.id }}">
+					<input type="submit" value="process data">
+				</form>
+			</td></tr>
+		</table>
 		
 		parent<br>
 		<a href="{{ parent_href }}">{{ parent_href }}</a><br>
