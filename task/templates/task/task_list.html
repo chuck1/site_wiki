@@ -1,9 +1,14 @@
-
-
+{% load staticfiles %}
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/static/wiki/default.css"></link>
+	</head>
+<body>
 <h1>Task List</h1>
 
 {% autoescape off %}
 {{ tree_html }}
 {% endautoescape %}
 
-
+</body>
+</html>

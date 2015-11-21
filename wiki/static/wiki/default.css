@@ -10,3 +10,30 @@ table, tr, td {
 	background-color: #FAFF73;
 	
 }
+form {
+	margin: 0px;
+}
+table.task_list {
+	border: none;
+}
+table.task_list table {
+	border: none;
+}
+table.task_list table tr {
+	border: none;
+}
+table.task_list table td {
+	border: none;
+}
+table.task_list tr {
+	border: none;
+}
+table.task_list td {
+	border: none;
+}
+table.task_list td.item {
+	padding: 3px;
+	padding-left: 20px;
+	/*background-color: #FF0000;*/
+}
+

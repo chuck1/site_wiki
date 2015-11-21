@@ -1,3 +1,5 @@
+from django.core.urlresolvers import reverse
+
 import xml.etree.ElementTree as ET
 
 def task_tree_insert(tree, line):
@@ -26,16 +28,45 @@ def task_tree(tasks):
 	
 	return tree
 
-def element_tree(tree, tag_container, tag_item, func = None, c = None):
+def func_item(e, d):
+	e = ET.SubElement(e, 'tr')
+	e = ET.SubElement(e, 'td')
+	e.attrib['class'] = 'item'
+	e.attrib['style'] = "padding-left:{}px".format(d*20)
+	return e
+
+def func(i, e):
+	t = ET.SubElement(e, 'table')
+	tr = ET.SubElement(t, 'tr')
+
+	td = ET.SubElement(tr, 'td')
+	td.text = str(i)
+
+	td = ET.SubElement(tr, 'td')
+	f = ET.SubElement(td, 'form')
+	f.attrib['action'] = reverse('task_edit', args=[i.id])
+	ip = ET.SubElement(f, 'input')
+	ip.attrib['type'] = 'submit'
+	ip.attrib['value'] = 'edit'
+
+	td = ET.SubElement(tr, 'td')
+	f = ET.SubElement(td, 'form')
+	f.attrib['action'] = reverse('task_create', args=[i.id])
+	ip = ET.SubElement(f, 'input')
+	ip.attrib['type'] = 'submit'
+	ip.attrib['value'] = 'create child'
+
+def element_tree(tree, c = None, d = 0):
 	
 	if c is None:
 		c_null = True
-		c = ET.Element(tag_container)
+		c = ET.Element('table')
+		c.attrib['class'] = 'task_list'
 	else:
 		c_null = False
 	
 	for i, subtree in tree.items():
-		e = ET.SubElement(c, tag_item)
+		e = func_item(c, d)
 		
 		if func:
 			func(i, e)
@@ -43,9 +74,7 @@ def element_tree(tree, tag_container, tag_item, func = None, c = None):
 			e.text = str(i)
 		
 		if subtree:
-			subc = ET.SubElement(e, tag_container)
-			
-			element_tree(subtree, tag_container, tag_item, func, subc)
+			element_tree(subtree, c, d+1)
 
 	if c_null:
 		return ET.tostring(c)

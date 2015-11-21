@@ -8,7 +8,8 @@ class Task(models.Model):
 	parent = models.ForeignKey('Task', blank=True, null=True)
 	
 	user_create = models.ForeignKey(User, related_name='tasks_create')
-	user_assign = models.ForeignKey(User, related_name='tasks_assign', blank=True, null=True)
+	user_assign = models.ForeignKey(User, related_name='tasks_assign', 
+		blank=True, null=True)
 	
 	user_shared_with = models.ManyToManyField(User, 
 		related_name='tasks_shared_with', blank=True)

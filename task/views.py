@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 import task.util
 
 from .models import Task
-from .forms import TaskEditForm
+from .forms import TaskEditForm, TaskCreateForm
 
 @login_required
 def task_list(request):
@@ -32,19 +32,9 @@ def task_list(request):
 	
 	#print tree
 
-	def func(i, e):
-		t = ET.SubElement(e, 'table')
-		tr = ET.SubElement(t, 'tr')
-		td = ET.SubElement(tr, 'td')
-		td.text = str(i)
-		td = ET.SubElement(tr, 'td')
-		f = ET.SubElement(td, 'form')
-		f.attrib['action'] = reverse('task_edit', args=[i.id])
-		ip = ET.SubElement(f, 'input')
-		ip.attrib['type'] = 'submit'
-		ip.attrib['value'] = 'edit'
 
-	el = task.util.element_tree(tree, 'ul', 'li', func)
+	#el = task.util.element_tree(tree, 'ul', task.util.func_item_1, func)
+	el = task.util.element_tree(tree)
 	#print el
 	
 	return render(request, 'task/task_list.html', {'tree_html': el})
@@ -79,6 +69,43 @@ def task_edit(request, task_id):
 
 	return render(request, 'task/task_edit.html', {'form':form, 'task':task})
 
+@login_required
+def task_create(request, parent_task_id):
+
+	parent_task = get_object_or_404(Task, pk=parent_task_id)
+	user = request.user
+	if not (user == parent_task.user_create):
+		return HttpResponse('Error')
+
+	if request.method == 'POST':
+
+		form = TaskCreateForm(request.POST)
+		
+		if form.is_valid():
+
+			name = form.cleaned_data['name']
+
+			task = Task()
+			task.name = name
+			task.user_create = user
+			task.parent = parent_task
+			task.save()
+
+			print 'create task'
+			print 'name       ', name
+			print 'user_create', user
+			print 'parent     ', parent_task
+
+
+			return HttpResponseRedirect('/task/task_list')
+		else:
+			return render(request, 'task/task_create.html', {
+				'form':form, 'parent_task':parent_task})
+
+	form = TaskCreateForm()
+
+	return render(request, 'task/task_create.html', {
+		'form':form, 'parent_task':parent_task})
 
 
 

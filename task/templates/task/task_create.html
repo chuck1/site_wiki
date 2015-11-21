@@ -1,0 +1,14 @@
+
+<h1>create</h1>
+
+<form action="{% url 'task_create' parent_task.id %}" method="post">
+<table>
+	{% csrf_token %}
+	{{ form }}
+	<tr><td>
+		<input type="submit" value="submit"></input>
+	</td></tr>
+</table>
+</form>
+
+
