@@ -35,12 +35,12 @@ def func_item(e, d):
 	e.attrib['style'] = "padding-left:{}px".format(d*20)
 	return e
 
-def func(i, e):
-	t = ET.SubElement(e, 'table')
-	tr = ET.SubElement(t, 'tr')
-
-	td = ET.SubElement(tr, 'td')
-	td.text = str(i)
+def func(parent, i, e, d):
+	#t = ET.SubElement(e, 'table')
+	tr = ET.SubElement(e, 'tr')
+        
+        if parent is not None:
+            tr.attrib['data-parent-id'] = str(parent.id)
 
 	td = ET.SubElement(tr, 'td')
 	f = ET.SubElement(td, 'form')
@@ -56,8 +56,16 @@ def func(i, e):
 	ip.attrib['type'] = 'submit'
 	ip.attrib['value'] = 'create child'
 
-def element_tree(tree, c = None, d = 0):
+	td = ET.SubElement(tr, 'td')
+	td.text = str(i)
+	td.attrib['style'] = "padding-left:{}px".format(d*20)
+
+
+def element_tree(parent, tree, c = None, d = 0):
 	
+        if parent:
+            print 'parent',parent.id
+
 	if c is None:
 		c_null = True
 		c = ET.Element('table')
@@ -66,16 +74,17 @@ def element_tree(tree, c = None, d = 0):
 		c_null = False
 	
 	for i, subtree in tree.items():
-		e = func_item(c, d)
+		#e = func_item(c, d)
 		
 		if func:
-			func(i, e)
+			#func(i, e)
+                        func(parent, i, c, d)
 		else:
 			e.text = str(i)
 		
 		if subtree:
-			element_tree(subtree, c, d+1)
+			element_tree(i, subtree, c, d+1)
 
 	if c_null:
-		return ET.tostring(c)
+		return ET.tostring(c,method='html')
 

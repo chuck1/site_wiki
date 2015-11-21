@@ -34,7 +34,7 @@ def task_list(request):
 
 
 	#el = task.util.element_tree(tree, 'ul', task.util.func_item_1, func)
-	el = task.util.element_tree(tree)
+	el = task.util.element_tree(None, tree)
 	#print el
 	
 	return render(request, 'task/task_list.html', {'tree_html': el})
