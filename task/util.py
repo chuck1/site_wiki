@@ -56,6 +56,20 @@ def func(parent, i, e, d):
 	ip.attrib['type'] = 'submit'
 	ip.attrib['value'] = 'create child'
 
+        td = ET.SubElement(tr, 'td')
+        ip = ET.SubElement(td, 'input')
+	ip.attrib['type'] = 'submit'
+        ip.attrib['value'] = '-'
+        ip.attrib['onclick'] = "collapse(this)"
+        ip.attrib['data-id'] = str(i.id)
+
+        td = ET.SubElement(tr, 'td')
+        ip = ET.SubElement(td, 'input')
+	ip.attrib['type'] = 'submit'
+        ip.attrib['value'] = '+'
+        ip.attrib['onclick'] = "uncollapse(this)"
+        ip.attrib['data-id'] = str(i.id)
+
 	td = ET.SubElement(tr, 'td')
 	td.text = str(i)
 	td.attrib['style'] = "padding-left:{}px".format(d*20)

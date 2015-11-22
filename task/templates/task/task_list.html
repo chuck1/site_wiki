@@ -11,5 +11,25 @@
 {{ tree_html }}
 {% endautoescape %}
 
+<input type="submit" onclick="collapse(this)"/>
+
+<script>
+function collapse(o) {
+	//alert("collapse");
+	var x = o.getAttribute("data-id")
+	//alert(x);
+	var s = "tr[data-parent-id='" + x + "']";
+	//alert(s);
+	$(s).attr("style","display:none;");
+	//$(s).text("hello");
+	//alert("end");
+}
+function uncollapse(o) {
+	var x = o.getAttribute("data-id")
+	var s = "tr[data-parent-id='" + x + "']";
+	$(s).attr("style","display:default;");
+}
+</script>
+
 </body>
 </html>
