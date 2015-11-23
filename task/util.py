@@ -1,5 +1,7 @@
 from django.core.urlresolvers import reverse
 
+from .models import Task
+
 import xml.etree.ElementTree as ET
 
 def task_tree_insert(tree, line):
@@ -16,15 +18,24 @@ def task_tree_insert(tree, line):
 		tree = tree[first]
 	
 	task_tree_insert(tree, line)
-	
+
+def task_line_hidden(line):
+    for l in line[:-1]:
+        if l.status != Task.STATUS_STARTED:
+            return True
+    return False
+
 def task_tree(tasks):
 	
 	tree = {}
 	
 	for t in tasks:
-		line = t.get_task_line()
-	
-		task_tree_insert(tree, line)
+	    line = t.get_task_line()
+	    
+            if task_line_hidden(line):
+                continue
+
+	    task_tree_insert(tree, line)
 	
 	return tree
 
