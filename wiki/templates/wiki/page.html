@@ -12,6 +12,7 @@
 		</script>
 	</head>
 	<body>
+		<div class="head">
 		path={{ path }}<br>
 		patch_id={{ patch_id }}<br>
 		user={{ user }} ({{ user.is_superuser }})<br>
@@ -32,13 +33,15 @@
 			</td></tr>
 		</table>
 		
-		parent<br>
-		<a href="{{ parent_href }}">{{ parent_href }}</a><br>
+		<!--parent<br>
+		<a href="{{ parent_href }}">{{ parent_href }}</a><br>-->
+		{% autoescape off %}{{ link_list }}{% endautoescape %}<br>
 		children<br>
 		{% autoescape off %}{{ child_list }}{% endautoescape %}
 		siblings<br>
 		{% autoescape off %}{{ sibling_list }}{% endautoescape %}
-		
+		</div>
+
 		{% autoescape off %}{{ body }}{% endautoescape %}
 	</body>
 </html>

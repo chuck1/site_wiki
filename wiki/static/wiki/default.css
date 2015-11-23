@@ -36,4 +36,8 @@ table.task_list td.item {
 	padding-left: 20px;
 	/*background-color: #FF0000;*/
 }
+div.head {
+	background-color: #DDDDDD;
+}
+
 

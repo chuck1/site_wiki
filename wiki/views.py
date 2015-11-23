@@ -486,7 +486,32 @@ def page_static(request, path0):
 		html = f.read()
 	
 	return HttpResponse(html)
-	
+
+def link_list(h):
+    links = []
+
+    while True:
+
+        href = '/' + h + '/index' if h else '/index'
+        h,t = os.path.split(h)
+
+        '''
+        if h and t:
+            pass
+        else:
+            print repr(h),repr(t)
+            break
+        '''
+
+        links.insert(0, "<a href=\"{}\">{}</a>".format(href,t))
+
+        if not h:
+            break
+
+    links.insert(0, "<a href=\"{}\">{}</a>".format("/index","home"))
+
+    return "/".join(links)
+
 @login_required	
 def page(request, path0):
 	
@@ -538,9 +563,12 @@ def page(request, path0):
 	
 	#print 'commit=', s
 	#print 'orig',repr(patch.orig)
-	
+
+        ll = link_list(h)
+
 	c = {
-		'page':			page,
+                'link_list':    ll,
+		'page':		page,
 		'path':         path0,
 		'patch_id':     patch.id,
 		'body':         body,
