@@ -5,7 +5,19 @@ from django.contrib.auth.models import User
 
 class Task(models.Model):
 	name = models.CharField(max_length=128)
-	parent = models.ForeignKey('Task', blank=True, null=True)
+        
+        STATUS_STARTED='ST'
+        STATUS_COMPLETED='CO'
+        STATUS_CANCELLED='CA'
+        STATUS_CHOICES = (
+                (STATUS_STARTED, 'started'),
+                (STATUS_COMPLETED, 'completed'),
+                (STATUS_CANCELLED, 'cancelled'))
+        
+        status = models.CharField(max_length=2, choices=STATUS_CHOICES,
+                default=STATUS_STARTED, blank=True)
+
+        parent = models.ForeignKey('Task', blank=True, null=True)
 	
 	user_create = models.ForeignKey(User, related_name='tasks_create')
 	user_assign = models.ForeignKey(User, related_name='tasks_assign', 
@@ -13,6 +25,21 @@ class Task(models.Model):
 	
 	user_shared_with = models.ManyToManyField(User, 
 		related_name='tasks_shared_with', blank=True)
+
+        hide_children = models.BooleanField(default=False)
+
+        def action_close(self):
+            self.status = Task.STATUS_COMPLETED
+            self.save()
+        def action(self, ac, user):
+            if user != self.user_create:
+                raise django.core.exceptions.PermissionDenied()
+            
+            o = {
+                    'close': self.action_close
+                    }
+            
+            o[ac]()
 
 	def __unicode__(self):
             return self.name

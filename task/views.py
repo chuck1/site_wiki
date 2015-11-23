@@ -19,8 +19,10 @@ def task_list(request):
 	
 	#tasks = Task.objects.get(user_create=user)
 	
-	tasks_create = user.tasks_create.all()
-	tasks_shared_with = user.tasks_shared_with.all()
+	#tasks_create = user.tasks_create.all()
+	#tasks_shared_with = user.tasks_shared_with.all()
+	tasks_create = user.tasks_create.filter(status=Task.STATUS_STARTED)
+	tasks_shared_with = user.tasks_shared_with.filter(status=Task.STATUS_STARTED)
 	
 	lst = list(tasks_create) + list(tasks_shared_with)
 	
@@ -63,12 +65,31 @@ def task_edit(request, task_id):
 		else:
 			return render(request, 'task/task_edit.html', {
 				'form':form, 'task':task})
-		
-
-	form = TaskEditForm()
+	
+        form = TaskEditForm(initial={'name':task.name})
 
 	return render(request, 'task/task_edit.html', {'form':form, 'task':task})
 
+@login_required
+def task_set_hide_children(request, task_id, val):
+
+    task = get_object_or_404(Task, pk=task_id)
+    
+    task.hide_children = bool(int(val))
+    task.save()
+
+    return HttpResponseRedirect('/task/task_list')
+
+@login_required
+def task_action(request, task_id, ac):
+
+    task = get_object_or_404(Task, pk=task_id)
+    
+    task.action(ac, request.user)
+
+    return HttpResponseRedirect('/task/task_list')
+    
+   
 @login_required
 def task_create(request, parent_task_id):
 

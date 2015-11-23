@@ -59,17 +59,28 @@ def func(parent, i, e, d):
 	ip.attrib['value'] = 'create child'
 
         td = ET.SubElement(tr, 'td')
-        ip = ET.SubElement(td, 'input')
+	f = ET.SubElement(td, 'form')
+	f.attrib['action'] = reverse('task_action', args=[i.id, 'close'])
+	ip = ET.SubElement(f, 'input')
+	ip.attrib['type'] = 'submit'
+	ip.attrib['value'] = 'close'
+
+        td = ET.SubElement(tr, 'td')
+       	f = ET.SubElement(td, 'form')
+	f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '1'])
+        ip = ET.SubElement(f, 'input')
 	ip.attrib['type'] = 'submit'
         ip.attrib['value'] = '-'
-        ip.attrib['onclick'] = "collapse(this, true)"
+        #ip.attrib['onclick'] = "collapse(this, true)"
         ip.attrib['data-id'] = str(i.id)
 
         td = ET.SubElement(tr, 'td')
-        ip = ET.SubElement(td, 'input')
+       	f = ET.SubElement(td, 'form')
+	f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '0'])
+        ip = ET.SubElement(f, 'input')
 	ip.attrib['type'] = 'submit'
         ip.attrib['value'] = '+'
-        ip.attrib['onclick'] = "collapse(this, false)"
+        #ip.attrib['onclick'] = "collapse(this, false)"
         ip.attrib['data-id'] = str(i.id)
 
 	td = ET.SubElement(tr, 'td')
@@ -79,8 +90,8 @@ def func(parent, i, e, d):
 
 def element_tree(parent, tree, c = None, d = 0):
 	
-        if parent:
-            print 'parent',parent.id
+        #if parent:
+        #    print 'parent',parent.id
 
 	if c is None:
 		c_null = True
@@ -89,18 +100,15 @@ def element_tree(parent, tree, c = None, d = 0):
 	else:
 		c_null = False
 	
-	for i, subtree in tree.items():
-		#e = func_item(c, d)
-		
-		if func:
-			#func(i, e)
-                        func(parent, i, c, d)
-		else:
-			e.text = str(i)
-		
-		if subtree:
-			element_tree(i, subtree, c, d+1)
+	for task, subtree in tree.items():
+	    #e = func_item(c, d)
+	    
+            func(parent, task, c, d)
+	    
+	    if subtree:
+                if not task.hide_children:
+		    element_tree(task, subtree, c, d+1)
 
 	if c_null:
-		return ET.tostring(c,method='html')
+	    return ET.tostring(c,method='html')
 
