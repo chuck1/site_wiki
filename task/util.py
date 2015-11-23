@@ -65,23 +65,24 @@ def func(parent, i, e, d):
 	ip.attrib['type'] = 'submit'
 	ip.attrib['value'] = 'close'
 
-        td = ET.SubElement(tr, 'td')
-       	f = ET.SubElement(td, 'form')
-	f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '1'])
-        ip = ET.SubElement(f, 'input')
-	ip.attrib['type'] = 'submit'
-        ip.attrib['value'] = '-'
-        #ip.attrib['onclick'] = "collapse(this, true)"
-        ip.attrib['data-id'] = str(i.id)
-
-        td = ET.SubElement(tr, 'td')
-       	f = ET.SubElement(td, 'form')
-	f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '0'])
-        ip = ET.SubElement(f, 'input')
-	ip.attrib['type'] = 'submit'
-        ip.attrib['value'] = '+'
-        #ip.attrib['onclick'] = "collapse(this, false)"
-        ip.attrib['data-id'] = str(i.id)
+        if not i.hide_children:
+            td = ET.SubElement(tr, 'td')
+            f = ET.SubElement(td, 'form')
+    	    f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '1'])
+            ip = ET.SubElement(f, 'input')
+    	    ip.attrib['type'] = 'submit'
+            ip.attrib['value'] = '-'
+            #ip.attrib['onclick'] = "collapse(this, true)"
+            ip.attrib['data-id'] = str(i.id)
+        else:
+            td = ET.SubElement(tr, 'td')
+            f = ET.SubElement(td, 'form')
+    	    f.attrib['action'] = reverse('task_set_hide_children', args=[i.id, '0'])
+            ip = ET.SubElement(f, 'input')
+            ip.attrib['type'] = 'submit'
+            ip.attrib['value'] = '+'
+            #ip.attrib['onclick'] = "collapse(this, false)"
+            ip.attrib['data-id'] = str(i.id)
 
 	td = ET.SubElement(tr, 'td')
 	td.text = str(i)
