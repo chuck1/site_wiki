@@ -11,23 +11,28 @@
 {{ tree_html }}
 {% endautoescape %}
 
-<input type="submit" onclick="collapse(this)"/>
-
 <script>
-function collapse(o) {
-	//alert("collapse");
+function collapse(o, a) {
 	var x = o.getAttribute("data-id")
-	//alert(x);
-	var s = "tr[data-parent-id='" + x + "']";
-	//alert(s);
-	$(s).attr("style","display:none;");
-	//$(s).text("hello");
-	//alert("end");
-}
-function uncollapse(o) {
-	var x = o.getAttribute("data-id")
-	var s = "tr[data-parent-id='" + x + "']";
-	$(s).attr("style","display:default;");
+	//var s = "tr[data-parent-id='" + x + "']";
+	//$(s).attr("style","display:none;");
+
+	var tr = o.parentNode.parentNode;
+	var d = parseInt(tr.getAttribute("data-depth"));
+	//alert("tr.nodeName="+tr.nodeName);
+	//alert(d);
+	tr = tr.nextSibling;
+	//alert("tr.nodeName="+tr.nodeName);
+	while(parseInt(tr.getAttribute("data-depth")) > d) {
+		if(a) {
+			tr.setAttribute("style","display:none");
+		} else {
+			tr.setAttribute("style","display:default");
+		}
+
+		tr = tr.nextSibling;
+	}
+	//alert(tr.getAttribute("data-id"));
 }
 </script>
 

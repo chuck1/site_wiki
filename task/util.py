@@ -41,6 +41,8 @@ def func(parent, i, e, d):
         
         if parent is not None:
             tr.attrib['data-parent-id'] = str(parent.id)
+        tr.attrib['data-id'] = str(i.id)
+        tr.attrib['data-depth'] = str(d)
 
 	td = ET.SubElement(tr, 'td')
 	f = ET.SubElement(td, 'form')
@@ -60,14 +62,14 @@ def func(parent, i, e, d):
         ip = ET.SubElement(td, 'input')
 	ip.attrib['type'] = 'submit'
         ip.attrib['value'] = '-'
-        ip.attrib['onclick'] = "collapse(this)"
+        ip.attrib['onclick'] = "collapse(this, true)"
         ip.attrib['data-id'] = str(i.id)
 
         td = ET.SubElement(tr, 'td')
         ip = ET.SubElement(td, 'input')
 	ip.attrib['type'] = 'submit'
         ip.attrib['value'] = '+'
-        ip.attrib['onclick'] = "uncollapse(this)"
+        ip.attrib['onclick'] = "collapse(this, false)"
         ip.attrib['data-id'] = str(i.id)
 
 	td = ET.SubElement(tr, 'td')

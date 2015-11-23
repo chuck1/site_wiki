@@ -15,7 +15,8 @@ class Task(models.Model):
 		related_name='tasks_shared_with', blank=True)
 
 	def __unicode__(self):
-		return self.name
+            return self.name
+            #return "{:4} {}".format(self.id,self.name)
 
 	def get_task_root(self):
 		if self.parent is not None:
