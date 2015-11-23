@@ -49,7 +49,6 @@ def task_edit(request, task_id):
 	if not (user == task.user_create):
 		return HttpResponse('Error')
 
-
 	if request.method == 'POST':
 
 		form = TaskEditForm(request.POST)

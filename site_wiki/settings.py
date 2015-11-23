@@ -113,7 +113,8 @@ STATICFILES_DIRS = (
 import socket
 hostname = socket.gethostname()
 if hostname == 'crymal-VirtualBox':
-	WIKI_ROOT = '/media/sf_P_DRIVE/data/site_wiki'
+    #WIKI_ROOT = '/media/sf_P_DRIVE/data/site_wiki'
+    WIKI_ROOT = '/home/crymal/backedup/data/site_wiki'
 else:
 	if sys.platform == 'win32':
 		WIKI_ROOT = 'P:\\data\\site_wiki'

@@ -24,7 +24,7 @@ import markdown_extension_numbering
 ####################################################
 
 def fix(l):
-	if 0:
+    if 0:
 		if l[0] == '-':
 			if '\r' in l[1:]:
 				h,t = l[1:].split('\r')
@@ -36,16 +36,16 @@ def fix(l):
 					ret += ['-' + t]
 				return ret
 	
-	if 1:
+    if 1:
 		if l[-1] != '\n':
 			if l[-1] != '\r':
 				return [l + '\n']
 	
-	if 0:
+    if 0:
 		if l[-1] == '\r':
 			return [l[:-1]+'\n']
 	
-	return [l]
+    return [l]
 
 def fix_diff(d, g):
 	
@@ -276,20 +276,6 @@ def apply_diff_3(patch, raw):
 	r.git.execute(['git', 'checkout', patch.commit_orig])
 	r.git.execute(['git', 'checkout', '-b', 'auto_{}'.format(patch.id)])
 	
-	'''
-	# switch to my unique branch
-	
-	branch = r.create_head('auto_{}'.format(patch.id), patch.commit_orig)
-	r.head.reference = branch
-	assert not r.head.is_detached
-	r.head.reset(index=True, working_tree=True)
-	
-	# edit file
-	
-	print 'CONTENTS', repr(get_contents(src_path))
-	
-	print 'SRC PATH', src_path
-	'''
 	
 	with open(src_path, 'w') as f:
 		f.write(raw)
@@ -320,57 +306,6 @@ def apply_diff_3(patch, raw):
 
         commit_str = r.head.commit.__str__()
 
-	#diffs = r.index.diff(None)
-	#if diffs:
-	#	r.git.execute(['git', 'add', diffs[0].a_path])
-        #	r.git.execute(['git', 'commit', '-m', 
-        #"'auto merge for {}'".format('auto_{}'.format(patch.id))])
-	#r.git.execute(['git', 
-	
-	'''
-	# commit
-	
-	
-	print 'DIFFS'
-	
-	
-	r.index.add()
-	c = r.index.commit('auto for {}'.format(path))
-	
-	print 'HEAD  ', r.head.reference
-	print 'COMMIT', str(c)[:8], c.message
-	
-	diffs = r.index.diff(None)
-	print 'DIFFS'
-	for d in diffs:
-		print '  {}'.format(d.a_path)
-	
-	# merge
-	master = r.heads.master
-	
-	master.checkout()
-	
-	merge_base = r.merge_base(branch, master)
-	
-	#r.index.merge_tree(master, base=merge_base)
-	r.index.merge_tree(branch, base=merge_base)
-	
-	c = r.index.commit('auto merge', parent_commits=(branch.commit, master.commit))
-	
-	# trying to fix
-	#r.head.reference = master
-	#assert not r.head.is_detached
-	#r.head.reset(index=True, working_tree=True)
-	
-	r.head.reset(c, index=True, working_tree=True)
-	
-	#master.commit = branch.commit
-	#r.head.reference = master
-	
-	print 'HEAD  ', r.head.reference
-	print 'COMMIT', str(c)[:8], c.message
-	return c
-	'''
 	return commit_str
 
 ####################################################
@@ -388,36 +323,34 @@ def get_build(src, dst):
 	'''
 	
 	if requires_update(src, dst):
-		print 'rebuilding'
+	    print 'rebuilding'
 
-		j_data = wiki.util.get_data_file(src)
+	    j_data = wiki.util.get_data_file(src)
 		
-		raw = get_contents(src)
+	    raw = get_contents(src)
 
-		#body = markdown.markdown(raw)
+	    #body = markdown.markdown(raw)
 		
-		extensions=[
+	    extensions=[
 			markdown.extensions.tables.TableExtension(),
 			markdown_extension_blockmod.MyExtension()]
 		
-		try:
-			numbering = j_data['numbering']
-		except:
-			pass
-		else:
-			extensions.append(markdown_extension_numbering.MyExtension(numbering))
+	    try:
+		numbering = j_data['numbering']
+	    except:
+		pass
+	    else:
+		extensions.append(markdown_extension_numbering.MyExtension(numbering))
 		
-		body = markdown.markdown(raw, extensions)
+	    body = markdown.markdown(raw, extensions)
 		
+	    assert_dir(dst)
 		
-		
-		assert_dir(dst)
-		
-		with open(dst, 'w') as f:
+	    with open(dst, 'w') as f:
 			f.write(body)
 	else:
-		with open(dst, 'r') as f:
-			body = f.read()
+	    with open(dst, 'r') as f:
+		body = f.read()
 
 	return body
 
@@ -545,75 +478,12 @@ def page_static(request, path0):
 	
 	path = os.path.normpath(path0)
 	
-	'''
-	try:
-		page = Page.objects.get(path=path0)
-	except Exception as e:
-		page = Page()
-		page.path = path0
-		page.save()
-		#return HttpResponse(str(e))
-	'''
-	
 	dir = os.path.dirname(path)
 	
 	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
 	
 	with open(build_path, 'r') as f:
 		html = f.read()
-	
-	'''
-	source_path = os.path.join(settings.WIKI_SRC_ROOT, path + '.md')
-	
-	body = get_build(source_path, build_path)
-	
-	# file data
-	j_data = wiki.util.get_data_file(source_path)
-	
-	# get HEAD commit string
-	r = git.Repo(settings.WIKI_SRC_ROOT)
-	s = r.head.commit.__str__()
-	
-	# create a new Patch object
-	patch = Patch()
-	patch.user = request.user
-	patch.page = page
-	patch.orig = get_contents(source_path)
-	patch.commit_orig = s
-	patch.save()
-	'''
-	
-	
-	'''
-	h,t = os.path.split(os.path.dirname(path0))
-	
-	child_list = wiki.util.child_link_html(dir)
-	sibling_list = wiki.util.sibling_link_html(dir)
-	
-	parent_href = '/' + h + '/index' if h else '/index'
-	
-	print 'path0  {}'.format(path0)
-	print 'path   {}'.format(path)
-	print 'dir    {}'.format(dir)
-	print 'parent {}'.format(parent_href)
-	print 'j data {}'.format(repr(j_data))
-	
-	#print 'commit=', s
-	#print 'orig',repr(patch.orig)
-	'''
-	'''
-	c = {
-			'path':         path0,
-			'patch_id':     patch.id,
-			'body':         body,
-			'child_list':   child_list,
-			'sibling_list': sibling_list,
-			'parent_href':  parent_href,
-                        'user':         request.user,
-			}
-
-	return render(request, 'wiki/page.html', c)
-	'''
 	
 	return HttpResponse(html)
 	
@@ -632,8 +502,6 @@ def page(request, path0):
 	
 	
 	dir = os.path.dirname(path)
-	
-	
 	
 	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
 	source_path = os.path.join(settings.WIKI_SRC_ROOT, path + '.md')
