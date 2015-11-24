@@ -127,3 +127,15 @@ else:
 
 WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
 WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')
+
+# email
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.office365.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+#EMAIL_USE_SSL = False
+#EMAIL_HOST_USER = "charles.rymal@nortek.com"
+EMAIL_HOST_USER = "CR3B88@nortek.com"
+EMAIL_HOST_PASSWORD = "Alpineglacier1"
+
+

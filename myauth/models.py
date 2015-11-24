@@ -3,11 +3,17 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
+from django.core.urlresolvers import reverse
+import django.core.mail
+
+import sys
+import random
+random.seed()
 
 # Create your models here.
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, password=None):
+    def create_user(self, request, email, password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -20,7 +26,35 @@ class MyUserManager(BaseUserManager):
         )
 
         user.set_password(password)
+
+        user.is_active = False
+
+        # send email
+
+        print 'request', request.META['HTTP_HOST']
+
+        code = random.randint(0, sys.maxint)
+        
+        ref = 'http://' + request.META['HTTP_HOST'] + reverse('confirmation', args=[code])
+	link = '<a href="{0}">{0}</a>'.format(ref)
+        ret = django.core.mail.send_mail('django site confirmation', link,
+			'charles.rymal@nortek.com', [user.email], html_message=link,
+                        fail_silently=False)
+        print 'email',repr(ret)
+
+        # save
+
         user.save(using=self._db)
+
+        
+        # confirmation
+        con = Confirmation()
+        con.user = user
+        con.code = code 
+        con.save()
+
+        print 'confirm code',con.code
+
         return user
 
     def create_superuser(self, email, password):

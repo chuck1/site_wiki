@@ -6,10 +6,18 @@ from django.conf import settings
 # Create your views here.
 
 from .forms import Register
-from .models import MyUser as User
+from .models import MyUser, Confirmation
 
 def confirmation(request, code):
-    dt = timezone.now()
+    #dt = timezone.now()
+    
+    c = Confirmation.objects.get(code=code)
+    print c
+    
+    c.user.is_active = True
+    c.user.save()
+
+    return HttpResponse('confirmation success')
 
 def register(request):
     if request.method == 'POST':
@@ -19,12 +27,11 @@ def register(request):
     
         if form.is_valid():
             try:
-                user = User.objects.create_user(
+                user = MyUser.objects.create_user(
                     #form.cleaned_data['username'],
+                    request,
                     form.cleaned_data['email'],
                     form.cleaned_data['pass0'],)
-                user.is_active = False
-                user.save()
             except Exception as e:
                 print 'register failure',e
                 pass
