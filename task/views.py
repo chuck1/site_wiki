@@ -19,13 +19,17 @@ def task_list(request):
 	
 	#tasks = Task.objects.get(user_create=user)
 	
-	#tasks_create = user.tasks_create.all()
-	#tasks_shared_with = user.tasks_shared_with.all()
-	tasks_create = user.tasks_create.filter(status=Task.STATUS_STARTED)
-	tasks_shared_with = user.tasks_shared_with.filter(status=Task.STATUS_STARTED)
+	tasks_create = user.tasks_create.all()
+	tasks_shared_with = user.tasks_shared_with.all()
+	#tasks_create = user.tasks_create.filter(status=Task.STATUS_STARTED)
+	#tasks_shared_with = user.tasks_shared_with.filter(status=Task.STATUS_STARTED)
+	#tasks_create = user.tasks_create.filter(is_open=True)
+	#tasks_shared_with = user.tasks_shared_with.filter(is_open=True)
 	
 	lst = list(tasks_create) + list(tasks_shared_with)
 	
+        lst = filter(lambda x: x.is_open(), lst)
+
 	tree = task.util.task_tree(lst)
 
 	print 'task list'

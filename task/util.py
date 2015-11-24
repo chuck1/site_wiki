@@ -21,7 +21,7 @@ def task_tree_insert(tree, line):
 
 def task_line_hidden(line):
     for l in line[:-1]:
-        if l.status != Task.STATUS_STARTED:
+        if not l.is_open():
             return True
     return False
 
