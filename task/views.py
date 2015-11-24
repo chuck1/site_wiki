@@ -17,14 +17,8 @@ from .forms import TaskEditForm, TaskCreateForm
 def task_list(request):
 	user = request.user
 	
-	#tasks = Task.objects.get(user_create=user)
-	
 	tasks_create = user.task_create.all()
 	tasks_shared_with = user.task_shared_with.all()
-	#tasks_create = user.tasks_create.filter(status=Task.STATUS_STARTED)
-	#tasks_shared_with = user.tasks_shared_with.filter(status=Task.STATUS_STARTED)
-	#tasks_create = user.tasks_create.filter(is_open=True)
-	#tasks_shared_with = user.tasks_shared_with.filter(is_open=True)
 	
 	lst = list(tasks_create) + list(tasks_shared_with)
 	
@@ -36,12 +30,7 @@ def task_list(request):
 	print 'user ',user
 	print 'tasks',len(lst)
 	
-	#print tree
-
-
-	#el = task.util.element_tree(tree, 'ul', task.util.func_item_1, func)
 	el = task.util.element_tree(None, tree)
-	#print el
 	
 	return render(request, 'task/task_list.html', {'tree_html': el})
 

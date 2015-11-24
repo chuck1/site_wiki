@@ -111,8 +111,14 @@ def element_tree(parent, tree, c = None, d = 0):
 		c.attrib['class'] = 'task_list'
 	else:
 		c_null = False
-	
-	for task, subtree in tree.items():
+        
+        def task_cmp(t1, t2):
+            #if t1.datetime_create != t2.datetime_create:
+            return cmp(t1.datetime_create, t2.datetime_create)
+
+        items = sorted(tree.items(), cmp=task_cmp, key=lambda i: i[0])
+
+	for task, subtree in items:
 	    #e = func_item(c, d)
 	    
             func(parent, task, c, d)

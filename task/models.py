@@ -35,8 +35,8 @@ class Task(models.Model):
 
         hide_children = models.BooleanField(default=False)
         
-        #datetime_create = models.DateTimeField(auto_now_add=True)
-        datetime_create = models.DateTimeField(default=timezone.now)
+        datetime_create = models.DateTimeField(auto_now_add=True)
+        #datetime_create = models.DateTimeField(default=timezone.now)
         
         def action_close(self):
             #self.status = Task.STATUS_COMPLETED
