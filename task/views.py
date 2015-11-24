@@ -19,8 +19,8 @@ def task_list(request):
 	
 	#tasks = Task.objects.get(user_create=user)
 	
-	tasks_create = user.tasks_create.all()
-	tasks_shared_with = user.tasks_shared_with.all()
+	tasks_create = user.task_create.all()
+	tasks_shared_with = user.task_shared_with.all()
 	#tasks_create = user.tasks_create.filter(status=Task.STATUS_STARTED)
 	#tasks_shared_with = user.tasks_shared_with.filter(status=Task.STATUS_STARTED)
 	#tasks_create = user.tasks_create.filter(is_open=True)

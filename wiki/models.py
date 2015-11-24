@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 # Create your models here.
 
@@ -11,7 +11,7 @@ class Page(models.Model):
 
 class Patch(models.Model):
 	page = models.ForeignKey(Page)
-	user = models.ForeignKey(User)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL)
 	commit_orig = models.CharField(max_length=200)
 	orig = models.TextField()
 	commit_edit = models.CharField(max_length=200)

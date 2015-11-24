@@ -1,8 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db.models import Q, Max
+from django.utils import timezone
 
 # Create your models here.
+
+print 'task.models', settings.AUTH_USER_MODEL
 
 class Task(models.Model):
 	name = models.CharField(max_length=128)
@@ -21,16 +24,19 @@ class Task(models.Model):
         '''
         parent = models.ForeignKey('Task', blank=True, null=True)
 	
-	user_create = models.ForeignKey(User, related_name='tasks_create')
-	user_assign = models.ForeignKey(User, related_name='tasks_assign', 
-		blank=True, null=True)
+        print 'task.models', settings.AUTH_USER_MODEL
+	user_create = models.ForeignKey(settings.AUTH_USER_MODEL,
+		related_name='task_create')
+	user_assign = models.ForeignKey(settings.AUTH_USER_MODEL,
+		related_name='task_assign', blank=True, null=True)
 	
-	user_shared_with = models.ManyToManyField(User, 
-		related_name='tasks_shared_with', blank=True)
+	user_shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, 
+		related_name='task_shared_with', blank=True, through='TaskUserSharedWith')
 
         hide_children = models.BooleanField(default=False)
         
-        datetime_create = models.DateTimeField(auto_now_add=True)
+        #datetime_create = models.DateTimeField(auto_now_add=True)
+        datetime_create = models.DateTimeField(default=timezone.now)
         
         def action_close(self):
             #self.status = Task.STATUS_COMPLETED
@@ -101,5 +107,9 @@ class TaskEvent(models.Model):
     event_type = models.IntegerField(choices=TYPE_CHOICES)
 
     event_datetime = models.DateTimeField(auto_now_add=True)
+
+class TaskUserSharedWith(models.Model):
+    task = models.ForeignKey('Task')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 

@@ -592,36 +592,6 @@ def test(request):
 	
 	return HttpResponse("success<br>{}".format(i))
 
-def register(request):
-    if request.method == 'POST':
-        nxt = request.POST['next']
-
-        form = wiki.forms.Register(request.POST)
-    
-        if form.is_valid():
-            user = User.objects.create_user(
-                form.cleaned_data['username'],
-                form.cleaned_data['email'],
-                form.cleaned_data['pass0'],)
-        
-            print 'register success'
-
-            return HttpResponse('register success')
-                    
-            return HttpResponseRedirect(
-                    '/accounts/login?next={}'.format(nxt))
-        else:
-            print 'register failure'
-    else:
-        print 'register start'
-        form = wiki.forms.Register()
-        nxt = request.GET['next']
-
-    c = {
-                'form': form,
-                'next': nxt,
-                }
-    return render(request, 'registration/register.html', c)
 
 
 
