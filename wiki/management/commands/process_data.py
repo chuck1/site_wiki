@@ -6,8 +6,6 @@ import os
 
 import wiki.util
 
-
-
 class Command(BaseCommand):
 	help = 'help message'
 	
@@ -34,20 +32,31 @@ class Command(BaseCommand):
 		file_list = g()
 		
 		for f in file_list:
-			print f
+	    	    print f
 			
-			dir = os.path.dirname(f)
+		    output_dir = os.path.dirname(f)
 			
-			j = wiki.util.get_data(f)
+		    j = wiki.util.get_data(f)
 			
-			print j
-			
-			if 'python_doc' in j:
-				lst = j['python_doc']
-				for l in lst:
-					django.core.management.call_command('python_doc', l[0],
-						os.path.join(dir, l[1]))
-			
+		    print j
+		    
+                    def pydoc_options(d, name):
+                        if name == 'makedir':
+                            if 'makedir' in d:
+                                return d['makedir']
+                            else:
+                                return True
+                        else:
+                            raise ValueError('invalid python_doc option')
+
+		    if 'python_doc' in j:
+                        d = j['python_doc']
+		        lst = d['modules']
+			for l in lst:
+                            
+			    django.core.management.call_command('python_doc', l,
+			        output_dir,
+                                makedir=pydoc_options(d, 'makedir'))
 			
 
 		
