@@ -3,28 +3,11 @@ from django.conf import settings
 from django.db.models import Q, Max
 from django.utils import timezone
 
-# Create your models here.
-
-print 'task.models', settings.AUTH_USER_MODEL
-
 class Task(models.Model):
 	name = models.CharField(max_length=128)
 
-        '''
-        STATUS_STARTED='ST'
-        STATUS_COMPLETED='CO'
-        STATUS_CANCELLED='CA'
-        STATUS_CHOICES = (
-                (STATUS_STARTED, 'started'),
-                (STATUS_COMPLETED, 'completed'),
-                (STATUS_CANCELLED, 'cancelled'))
-        
-        status = models.CharField(max_length=2, choices=STATUS_CHOICES,
-                default=STATUS_STARTED, blank=True)
-        '''
         parent = models.ForeignKey('Task', blank=True, null=True)
 	
-        print 'task.models', settings.AUTH_USER_MODEL
 	user_create = models.ForeignKey(settings.AUTH_USER_MODEL,
 		related_name='task_create')
 	user_assign = models.ForeignKey(settings.AUTH_USER_MODEL,
