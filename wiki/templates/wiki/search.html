@@ -7,6 +7,10 @@ span.line_no {
 	font-weight: bold;
 	color: #0000FF;
 }
+span.search_match {
+	font-weight: bold;
+	color: #00A000;
+}
 </style>
 
 <h1>Search</h1>
@@ -28,7 +32,7 @@ span.line_no {
 <div class="search_result">
 {% for n,l in lst %}
 <!--<span class="line_no">{{ n }}:</span> {{ l }}<br>-->
-<span class="line_no">{% autoescape off %}{{ n }}{% endautoescape %}:</span> {{ l }}<br>
+<span class="line_no">{% autoescape off %}{{ n }}{% endautoescape %}:</span> {% autoescape off %}{{ l }}{% endautoescape %}<br>
 {% endfor %}
 </div>
 {% endfor %}

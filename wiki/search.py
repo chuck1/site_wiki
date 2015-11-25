@@ -24,8 +24,12 @@ def grep(source_path, pattern):
     matched_lines = []
     i = 1
     for line in lines:
-        if pat.search(line):
-            matched_lines.append([i, line])
+        matches = list(pat.finditer(line))
+        if matches:
+            matched_lines.append([
+                i, 
+                line,
+                [[m.start(), m.end()] for m in matches]])
         i += 1
 
     print matched_lines
@@ -88,8 +92,10 @@ def search(pattern):
         if lines:
             search_results[os.path.splitext(source_relpath)[0]] = lines
 
-    for f,l in search_results.items():
-        print f, len(l)
+    for f,lst in search_results.items():
+        print f, len(lst)
+        for l in lst:
+            print l[2]
 
     return search_results
 

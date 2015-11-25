@@ -599,6 +599,16 @@ def process_search_result_for_display(res):
     for lst in res.values():
         for l in lst:
             l[0] = ('{:>5}'.format(l[0])).replace(' ', '&nbsp;')
+            s0 = l[1]
+            s1 = ''
+            c = 0
+            for mc in l[2]:
+                print 'mc',mc
+                s1 += s0[c:mc[0]]
+                s1 += '<span class="search_match">' + s0[mc[0]:mc[1]] + '</span>'
+                c = mc[1]
+            s1 += s0[c:]
+            l[1] = s1
 
 @login_required	
 def search(request):
