@@ -440,7 +440,7 @@ def edit_save(request):
 	#	raise e
 	pass
 
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_admin)
 def process_data(request):
 	# call
 	django.core.management.call_command('process_data')
