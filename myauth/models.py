@@ -5,7 +5,9 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.conf import settings
 from django.core.urlresolvers import reverse
 import django.core.mail
+from django.utils import timezone
 
+import datetime
 import sys
 import random
 random.seed()
@@ -50,7 +52,8 @@ class MyUserManager(BaseUserManager):
         # confirmation
         con = Confirmation()
         con.user = user
-        con.code = code 
+        con.code = code
+        con.expire = timezone.now() + datetime.timedelta(days=1)
         con.save()
 
         print 'confirm code',con.code
@@ -114,6 +117,5 @@ class MyUser(AbstractBaseUser):
 class Confirmation(models.Model):
     code = models.IntegerField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-
-
+    expire = models.DateTimeField(auto_now_add=True)
 

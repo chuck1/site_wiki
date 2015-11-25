@@ -1,2 +1,21 @@
+<html>
+
+<head>
+{% block head %}
+{% endblock %}
+</head>
+
+<body>
+
+<div class="head">
+<a href="{% url 'logout' %}?next={{ next }}">logout</a><br>
+{% block bodyhead %}
+{% endblock %}
+</div>
+<div class="content">
 {% block content %}
 {% endblock %}
+</div>
+</body>
+
+<html>

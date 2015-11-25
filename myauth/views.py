@@ -28,7 +28,6 @@ def register(request):
         if form.is_valid():
             try:
                 user = MyUser.objects.create_user(
-                    #form.cleaned_data['username'],
                     request,
                     form.cleaned_data['email'],
                     form.cleaned_data['pass0'],)
@@ -38,9 +37,9 @@ def register(request):
             else:
                 print 'register success'
 
-                return HttpResponse('you should receive a confirmation email')
-                #return HttpResponseRedirect('/accounts/login?next={}'.format(nxt))
-                #return HttpResponseRedirect(nxt)
+                return HttpResponse('A confirmation link has been sent to your email.'
+                        '<br><a href="/accounts/login/?next={}">'
+                        'return to login</a>'.format(nxt))
         else:
             print 'register failure'
     else:
@@ -53,5 +52,17 @@ def register(request):
                 'next': nxt,
                 }
     return render(request, 'myauth/register.html', c)
+
+def address_next(request):
+    try:
+        n = request.GET['next']
+    except:
+        n = '/'
+
+def logout(request):
+    django.contrib.auth.logout(request)
+    
+    HttpResponseRedirect('/accounts/login?next={}'.format(address_next(request)))
+
 
 

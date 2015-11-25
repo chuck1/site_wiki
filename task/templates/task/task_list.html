@@ -1,40 +1,17 @@
+{% extends 'base.html' %}
 {% load staticfiles %}
-<html>
-	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="/static/wiki/default.css"></link>
-	</head>
-<body>
+{% endblock %}
+
+{% block content %}
 <h1>Task List</h1>
 
 {% autoescape off %}
 {{ tree_html }}
 {% endautoescape %}
 
-<script>
-function collapse(o, a) {
-	var x = o.getAttribute("data-id")
-	//var s = "tr[data-parent-id='" + x + "']";
-	//$(s).attr("style","display:none;");
+{% endblock %}
 
-	var tr = o.parentNode.parentNode;
-	var d = parseInt(tr.getAttribute("data-depth"));
-	//alert("tr.nodeName="+tr.nodeName);
-	//alert(d);
-	tr = tr.nextSibling;
-	//alert("tr.nodeName="+tr.nodeName);
-	while(parseInt(tr.getAttribute("data-depth")) > d) {
-		if(a) {
-			tr.setAttribute("style","display:none");
-		} else {
-			tr.setAttribute("style","display:default");
-		}
-
-		tr = tr.nextSibling;
-	}
-	//alert(tr.getAttribute("data-id"));
-}
-</script>
-
-</body>
-</html>

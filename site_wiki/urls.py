@@ -22,8 +22,9 @@ import wiki.views
 import task.views
 
 urlpatterns = [
-    url(r'^accounts/login/$', auth_views.login),
+    url(r'^accounts/login/$', auth_views.login, name='logout'),
     url(r'^accounts/register/$', myauth.views.register),
+    url(r'^accounts/logout/$', myauth.views.logout),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^myauth/',  include('myauth.urls')),
     url(r'^wiki/',  include('wiki.urls')),

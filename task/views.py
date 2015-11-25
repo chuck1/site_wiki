@@ -32,7 +32,8 @@ def task_list(request):
 	
 	el = task.util.element_tree(None, tree)
 	
-	return render(request, 'task/task_list.html', {'tree_html': el})
+        return render(request, 'task/task_list.html', {'tree_html': el, 
+            'next': '/task/task_list'})
 
 @login_required
 def task_edit(request, task_id):
