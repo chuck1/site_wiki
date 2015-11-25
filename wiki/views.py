@@ -15,6 +15,8 @@ import django.core.management
 from .models import Page, Patch, Lock
 import wiki.forms
 import wiki.util
+import wiki.search
+from .forms import SearchForm
 
 # markdown extensions
 import markdown.extensions.tables
@@ -580,6 +582,7 @@ def page(request, path0):
 
 	return render(request, 'wiki/page.html', c)
 
+@login_required	
 def test(request):
 	
 	l = Lock.objects.create(id=0)
@@ -592,7 +595,34 @@ def test(request):
 	
 	return HttpResponse("success<br>{}".format(i))
 
+def process_search_result_for_display(res):
+    for lst in res.values():
+        for l in lst:
+            l[0] = ('{:>5}'.format(l[0])).replace(' ', '&nbsp;')
 
+@login_required	
+def search(request):
+
+    if request.method == 'POST':
+
+	form = SearchForm(request.POST)
+	
+	if form.is_valid():
+
+	    pattern = form.cleaned_data['pattern']
+
+            results = wiki.search.search(pattern)
+            
+            process_search_result_for_display(results)
+
+            return render(request, 'wiki/search.html', {'form':form, 
+                'results':results.items()})
+	else:
+	    return render(request, 'wiki/search.html', {'form':form})
+    
+    form = SearchForm()
+    
+    return render(request, 'wiki/search.html', {'form':form})
 
 
 

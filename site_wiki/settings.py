@@ -127,6 +127,8 @@ else:
 
 WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
 WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')
+WIKI_SRC_DIR = WIKI_SRC_ROOT
+WIKI_BLD_DIR = WIKI_BLD_ROOT
 
 # email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

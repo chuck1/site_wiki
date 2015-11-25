@@ -4,6 +4,13 @@ import markdown
 import os
 import json
 
+def glob_source_files():
+    for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
+	for f in files:
+            if f[-3:] == '.md':
+                yield os.path.relpath(os.path.join(root, f), settings.WIKI_SRC_DIR)
+
+
 def list_data_src():
 	for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
 		for f in files:
