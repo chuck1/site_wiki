@@ -1,0 +1,17 @@
+
+
+<h1>Folder Create</h1>
+
+<form action="{% url 'wiki_folder_create' %}" method="post">
+<table>
+	{% csrf_token %}
+	<tr><td>path:</td><td>{{ path }}</td></tr>
+	{{ form }}
+	<input type=hidden name="path" value="{{ path }}">
+	<tr><td>
+		<input type="submit" value="create"></input>
+	</td></tr>
+</table>
+</form>
+
+

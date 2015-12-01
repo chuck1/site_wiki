@@ -3,6 +3,9 @@ from django.conf import settings
 import markdown
 import os
 import json
+import time
+
+import wiki.models
 
 def glob_source_files():
     for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
@@ -192,6 +195,18 @@ class FileListGenerator(object):
 		
 		return self.file_list
 
+def acquire_lock():
+	while True:
+		try:
+			lock = wiki.models.Lock.objects.create(id=0)
+		except:
+			# wait
+			print 'waiting for lock'
+			time.sleep(1)
+		else:
+			break
+	
+	return lock
 
 
 

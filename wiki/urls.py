@@ -4,6 +4,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+		url(r'^folder_create$', views.folder_create, name='wiki_folder_create'),
 		url(r'^search$', views.search, name='wiki_search'),
 		url(r'^edit$', views.edit, name='edit'),
 		url(r'^process_data$', views.process_data, name='process_data'),

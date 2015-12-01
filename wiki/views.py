@@ -1,4 +1,4 @@
-import os
+import os, sys
 import markdown
 import time
 import git
@@ -16,7 +16,7 @@ from .models import Page, Patch, Lock
 import wiki.forms
 import wiki.util
 import wiki.search
-from .forms import SearchForm
+from .forms import SearchForm, CreateFolderForm
 
 # markdown extensions
 import markdown.extensions.tables
@@ -399,19 +399,6 @@ def get_contents(path):
 	#    return 'file not found = {}'.format(repr(path))
 	pass
 
-def acquire_lock():
-	while True:
-		try:
-			lock = Lock.objects.create(id=0)
-		except:
-			# wait
-			print 'waiting for lock'
-			time.sleep(1)
-		else:
-			break
-	
-	return lock
-	
 def edit_save(request):
 	#try:
 	patch_id = request.POST['patch_id']
@@ -426,7 +413,7 @@ def edit_save(request):
 	patch = Patch.objects.get(pk=patch_id)
 	
 	# thread safety on git operations
-	lock = acquire_lock()
+	lock = wiki.util.acquire_lock()
 	c = apply_diff_3(patch, raw)
 	lock.delete()
 
@@ -635,6 +622,39 @@ def search(request):
     form = SearchForm()
     
     return render(request, 'wiki/search.html', {'form':form})
+
+
+@login_required	
+def folder_create(request):
+
+    if request.method == 'POST':
+
+	form = CreateFolderForm(request.POST)
+
+        parent_path = request.POST['path']
+	
+	if form.is_valid():
+            
+
+	    relpath = form.cleaned_data['relpath']
+            
+            # do stuff
+            path = os.path.join(settings.WIKI_SRC_DIR, parent_path, relpath)
+            
+            print 'create folder'
+            print path
+            
+ 	    django.core.management.call_command('makedirs', path)
+            
+            return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
+	else:
+	    return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
+    
+    form = CreateFolderForm()
+    
+    parent_path = request.GET['path']
+
+    return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
 
 
 
