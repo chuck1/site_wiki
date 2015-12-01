@@ -4,6 +4,7 @@ import time
 import git
 import difflib
 import re
+import subprocess
 
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -16,7 +17,7 @@ from .models import Page, Patch, Lock
 import wiki.forms
 import wiki.util
 import wiki.search
-from .forms import SearchForm, CreateFolderForm
+from .forms import SearchForm, CreateFolderForm, CreateFileForm
 
 # markdown extensions
 import markdown.extensions.tables
@@ -271,13 +272,21 @@ def apply_diff_3(patch, raw):
 	"""
 	path = patch.page.path
 	npath = os.path.normpath(path)
-	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath + '.md')
+        
+        npath_noex, e_b = os.path.splitext(npath)
+        e_s = wiki.util.convert_ext_b2s(e_b)
+
+        
+	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath_noex + e_s)
+
+        print 'ext s ', e_s
+        print 'ext b ', e_b
+        print 'path s', src_path
 	
 	r = git.Repo(settings.WIKI_SRC_ROOT)
 	
 	r.git.execute(['git', 'checkout', patch.commit_orig])
 	r.git.execute(['git', 'checkout', '-b', 'auto_{}'.format(patch.id)])
-	
 	
 	with open(src_path, 'w') as f:
 		f.write(raw)
@@ -319,42 +328,60 @@ def assert_dir(path):
 	except:
 		pass
 
-def get_build(src, dst):
-	'''
-	get the html for the src file and save it to dst file
-	'''
-	
-	if requires_update(src, dst):
-	    print 'rebuilding'
+def get_build(src, dst, path_rel_build):
+    '''
+    get the html for the src file and save it to dst file
+    '''
+    _,e_s = os.path.splitext(src)
 
-	    j_data = wiki.util.get_data_file(src)
-		
-	    raw = get_contents(src)
+    if e_s == '.md':
+        if requires_update(src, dst):
+            print 'rebuilding'
+    
+            j_data = wiki.util.get_data_file(src)
+        	
+            raw = get_contents(src)
+    
+            #body = markdown.markdown(raw)
+        	
+            extensions=[
+        		markdown.extensions.tables.TableExtension(),
+        		markdown_extension_blockmod.MyExtension()]
+        	
+            try:
+        	    numbering = j_data['numbering']
+            except:
+        	    pass
+            else:
+        	    extensions.append(markdown_extension_numbering.MyExtension(numbering))
+        	
+            body = markdown.markdown(raw, extensions)
+        	
+            assert_dir(dst)
+        	
+            with open(dst, 'w') as f:
+        	f.write(body)
+        else:
+            with open(dst, 'r') as f:
+    	        body = f.read()
+            
+    elif e_s == '.dot':
+        if requires_update(src, dst):
+            folder = os.path.dirname(dst)
+            try:
+                os.makedirs(folder)
+            except:
+                pass
 
-	    #body = markdown.markdown(raw)
-		
-	    extensions=[
-			markdown.extensions.tables.TableExtension(),
-			markdown_extension_blockmod.MyExtension()]
-		
-	    try:
-		numbering = j_data['numbering']
-	    except:
-		pass
-	    else:
-		extensions.append(markdown_extension_numbering.MyExtension(numbering))
-		
-	    body = markdown.markdown(raw, extensions)
-		
-	    assert_dir(dst)
-		
-	    with open(dst, 'w') as f:
-			f.write(body)
-	else:
-	    with open(dst, 'r') as f:
-		body = f.read()
+            p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src])
+            p.communicate()
 
-	return body
+        body = '<img src="/static/{}">'.format(path_rel_build)
+
+    else:
+        raise ValueError('invalid source extension')
+
+    return body
 
 def get_mtime(path):
 	try:
@@ -378,13 +405,20 @@ def get_mtime(path):
 	pass
 
 def requires_update(src, dst):
-	return True
-	if not os.path.exists(dst):
-		return True
-
-	s = get_mtime(src)
-	d = get_mtime(dst)
-	return s > d
+    s = get_mtime(src)
+    print
+    print 'requires_update'
+    print src
+    print dst
+    print s
+    if os.path.exists(dst):
+        d = get_mtime(dst)
+        print d
+    else:
+        return True
+    print s > d
+    print
+    return s > d
 
 def get_contents(path):
 	#try:
@@ -414,8 +448,8 @@ def edit_save(request):
 	
 	# thread safety on git operations
 	lock = wiki.util.acquire_lock()
-	c = apply_diff_3(patch, raw)
-	lock.delete()
+        c = apply_diff_3(patch, raw)
+        lock.delete()
 
         patch.commit_edit = c
 	print 'patch.commit_edit', patch.commit_edit
@@ -462,26 +496,13 @@ def edit(request):
 
 	return render(request, 'wiki/edit.html', c)
 
-@login_required	
-def page_static(request, path0):
-	
-	path = os.path.normpath(path0)
-	
-	dir = os.path.dirname(path)
-	
-	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
-	
-	with open(build_path, 'r') as f:
-		html = f.read()
-	
-	return HttpResponse(html)
 
 def link_list(h):
     links = []
 
     while True:
 
-        href = '/' + h + '/index' if h else '/index'
+        href = '/wiki/' + h + '/index.html' if h else '/wiki/index.html'
         h,t = os.path.split(h)
 
         '''
@@ -497,32 +518,51 @@ def link_list(h):
         if not h:
             break
 
-    links.insert(0, "<a href=\"{}\">{}</a>".format("/index","home"))
+    links.insert(0, "<a href=\"{}\">{}</a>".format("/wiki/index.html","home"))
 
     return "/".join(links)
+
+@login_required	
+def page_static(request, path0):
+	
+	path = os.path.normpath(path0)
+	
+	dir = os.path.dirname(path)
+	
+	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
+	
+	with open(build_path, 'r') as f:
+		html = f.read()
+	
+	return HttpResponse(html)
 
 @login_required	
 def page(request, path0):
 
         print request.META['REMOTE_ADDR']
-
+        
 	path = os.path.normpath(path0)
+        
+        path_noex, ex = os.path.splitext(path)
+        
+        source_path = os.path.join(settings.WIKI_SRC_ROOT,
+                path_noex + wiki.util.convert_ext_b2s(ex))
+ 
 	
 	try:
-		page = Page.objects.get(path=path0)
+	    page = Page.objects.get(path=path0)
 	except Exception as e:
-		page = Page()
-		page.path = path0
-		page.save()
-		#return HttpResponse(str(e))
+	    page = Page()
+	    page.path = path0
+	    page.save()
+	    #return HttpResponse(str(e))
+        
+        build_path = page.get_build_abspath()
+        #build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
 	
+        dir = os.path.dirname(path)
 	
-	dir = os.path.dirname(path)
-	
-	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
-	source_path = os.path.join(settings.WIKI_SRC_ROOT, path + '.md')
-	
-	body = get_build(source_path, build_path)
+	body = get_build(source_path, build_path, path)
 	
 	# file data
 	j_data = wiki.util.get_data_file(source_path)
@@ -638,7 +678,6 @@ def folder_create(request):
             
 	    relpath = form.cleaned_data['relpath']
             
-            # do stuff
             path = os.path.join(settings.WIKI_SRC_DIR, parent_path, relpath)
             
             print 'create folder'
@@ -655,6 +694,36 @@ def folder_create(request):
     parent_path = request.GET['path']
 
     return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
+
+@login_required	
+def file_create(request):
+
+    if request.method == 'POST':
+
+	form = CreateFileForm(request.POST)
+
+        parent_path = request.POST['path']
+	
+	if form.is_valid():
+            
+	    relpath = form.cleaned_data['relpath']
+            
+            path = os.path.join(settings.WIKI_SRC_DIR, parent_path, relpath)
+            
+            print 'create file'
+            print path
+            
+ 	    django.core.management.call_command('touch', path)
+            
+	    return HttpResponseRedirect(os.path.join('/wiki', parent_path, relpath))
+       	else:
+            return render(request, 'wiki/file_create.html', {'form':form, 'path':parent_path})
+ 
+    form = CreateFileForm()
+    
+    parent_path = request.GET['path']
+
+    return render(request, 'wiki/file_create.html', {'form':form, 'path':parent_path})
 
 
 

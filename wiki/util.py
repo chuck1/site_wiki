@@ -7,19 +7,25 @@ import time
 
 import wiki.models
 
+def convert_ext_s2b(e):
+    d = {'.md':'.html', '.dot':'.png'}
+    return d[e]
+def convert_ext_b2s(e):
+    d = {'.html':'.md', '.png':'.dot'}
+    return d[e]
+
 def glob_source_files():
     for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
 	for f in files:
             if f[-3:] == '.md':
                 yield os.path.relpath(os.path.join(root, f), settings.WIKI_SRC_DIR)
 
-
 def list_data_src():
-	for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
-		for f in files:
-			if f == 'data.txt':
-				path = os.path.join(root, f)
-				print path
+    for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
+	for f in files:
+	    if f == 'data.txt':
+		path = os.path.join(root, f)
+		print path
 
 def get_data(f):
 	f = os.path.join(settings.WIKI_SRC_ROOT, f)
@@ -80,30 +86,27 @@ def mylistdir(dir, flt):
 		
 		h,e = os.path.splitext(x)
 		if not e:
-			return x + '/index'
-		return h
+		    return x + '/index.html'
+		#return h
+                return h + convert_ext_s2b(e)
 	
 	lst = [proc(x) for x in lst]
 	
 	def proc2(x):
-		h,t = os.path.split(x)
-		if h:
-			return '- [{}]({})'.format(h,x)
-		return '- [{}]({})'.format(t,x)
+	    h,t = os.path.split(x)
+	    if h:
+		return '- [{}]({})'.format(h,x)
+	    return '- [{}]({})'.format(t,x)
 	
 	lst = [proc2(x) for x in lst]
 	
 	return lst
 
 def sibling_link_html(dir):
-	lst = mylistdir(dir, flt_files)
-	
-	#for l in lst:
-	#	print '  {}'.format(l)
-	
-	raw = '\n'.join(lst)
-	html = markdown.markdown(raw)
-	return html
+    lst = mylistdir(dir, flt_files)
+    raw = '\n'.join(lst)
+    html = markdown.markdown(raw)
+    return html
 	
 def child_link_html(dir):
 	lst = mylistdir(dir, flt_folders)

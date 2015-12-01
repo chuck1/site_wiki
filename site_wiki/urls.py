@@ -29,8 +29,8 @@ urlpatterns = [
     url(r'^myauth/',  include('myauth.urls')),
     url(r'^wiki/',  include('wiki.urls')),
     url(r'^task/',  include('task.urls')),
-    url(r'^([\w\/]+)$', wiki.views.page, name='page'),
-    url(r'^([\w\/]+[\w\.]+\.html)$', wiki.views.page_static, name='page_static'),
+    #url(r'^([\w\/]+)$', wiki.views.page, name='page'),
+    #url(r'^([\w\/]+[\w\.]+\.html)$', wiki.views.page_static, name='page_static'),
     ]
 
 

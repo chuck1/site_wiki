@@ -6,3 +6,6 @@ class SearchForm(forms.Form):
 class CreateFolderForm(forms.Form):
     relpath = forms.CharField(max_length=1024)
 
+class CreateFileForm(forms.Form):
+    relpath = forms.CharField(max_length=1024)
+
