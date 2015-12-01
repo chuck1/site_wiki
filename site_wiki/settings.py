@@ -26,8 +26,13 @@ SECRET_KEY = 'hk8@0lef88isdjexgm7(e4xg^7%f4wbjpx*cf2h!xh+ru2t=sn'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# only server site through these addresses
+ALLOWED_HOSTS = ['192.168.56.2']
 
+# allows debug info only when request comes from theses addresses
+INTERNAL_IPS = ['192.168.56.1']
+
+#ADMINS = (('crymal',''),)
 
 # Application definition
 

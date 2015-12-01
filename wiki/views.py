@@ -516,7 +516,9 @@ def link_list(h):
 
 @login_required	
 def page(request, path0):
-	
+
+        print request.META['REMOTE_ADDR']
+
 	path = os.path.normpath(path0)
 	
 	try:

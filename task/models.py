@@ -56,10 +56,10 @@ class Task(models.Model):
             q2 = q.filter(event_datetime=dt)
             assert len(q2)==1
             te = q2[0]
-            print 'q ',q
-            print 'te',te
+            #print 'q ',q
+            #print 'te',te
             b = bool(te.event_type == TaskEvent.TYPE_OPEN)
-            print 'b ',b
+            #print 'b ',b
             return b
 
 
