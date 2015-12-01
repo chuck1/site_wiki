@@ -560,6 +560,7 @@ def page(request, path0):
 	c = {
                 'link_list':    ll,
 		'page':		page,
+                'folder':       dir,
 		'path':         path0,
 		'patch_id':     patch.id,
 		'body':         body,
@@ -635,7 +636,6 @@ def folder_create(request):
 	
 	if form.is_valid():
             
-
 	    relpath = form.cleaned_data['relpath']
             
             # do stuff
@@ -646,10 +646,10 @@ def folder_create(request):
             
  	    django.core.management.call_command('makedirs', path)
             
+	    return HttpResponseRedirect(os.path.join('/wiki', parent_path, relpath, 'index'))
+       	else:
             return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
-	else:
-	    return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
-    
+ 
     form = CreateFolderForm()
     
     parent_path = request.GET['path']

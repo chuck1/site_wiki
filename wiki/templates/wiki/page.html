@@ -15,22 +15,34 @@
 		<div class="head">
 		path={{ path }}<br>
 		patch_id={{ patch_id }}<br>
-		user={{ user }} ({{ user.is_superuser }})<br>
+		user={{ user }} ({{ user.is_admin }})<br>
 		
 		<table>
-			<tr><td>
+		<tr>
+			<td>
 				<form action="{% url 'edit' %}" method="POST">
-					{% csrf_token %}
-					<input type="hidden" name="patch_id" value="{{ patch_id }}">
-					<input type="submit" value="edit">
+				{% csrf_token %}
+				<input type="hidden" name="patch_id" value="{{ patch_id }}">
+				<input type="submit" value="edit">
 				</form>
-			</td><td>	
+			</td>
+			<td>
+				<form action="{% url 'wiki_folder_create' %}" method="GET">
+				{% csrf_token %}
+				<input type="hidden" name="path" value="{{ folder }}">
+				<input type="submit" value="folder create">
+				</form>
+			</td>
+			{% if user.is_admin %}
+			<td>	
 				<form action="{% url 'process_data' %}" method="POST">
-					{% csrf_token %}
-					<input type="hidden" name="page_id" value="{{ page.id }}">
-					<input type="submit" value="process data">
+				{% csrf_token %}
+				<input type="hidden" name="page_id" value="{{ page.id }}">
+				<input type="submit" value="process data">
 				</form>
-			</td></tr>
+			</td>
+			{% endif %}
+		</tr>
 		</table>
 		
 		<!--parent<br>
