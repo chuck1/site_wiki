@@ -18,10 +18,13 @@ class Command(BaseCommand):
         if not options['locked']:
             lock = wiki.util.acquire_lock()
 
+        print 'commit all'
         p = subprocess.Popen(["git","add","--all"])
         p.communicate()
+        print p.returncode
         p = subprocess.Popen(["git","commit","-m",options['message']])
         p.communicate()
+        print p.returncode
         
         if not options['locked']:
             lock.delete()
