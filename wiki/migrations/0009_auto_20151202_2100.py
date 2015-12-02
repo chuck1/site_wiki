@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('myauth', '0003_auto_20151202_1817'),
+        ('myauth', '0004_auto_20151202_2057'),
         ('wiki', '0008_patch_user'),
     ]
 
@@ -18,14 +18,14 @@ class Migration(migrations.Migration):
             name='PageGroupEdit',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('group', models.ForeignKey(to='myauth.Group')),
+                ('group', models.ForeignKey(to='myauth.MyGroup')),
             ],
         ),
         migrations.CreateModel(
             name='PageGroupView',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('group', models.ForeignKey(to='myauth.Group')),
+                ('group', models.ForeignKey(to='myauth.MyGroup')),
             ],
         ),
         migrations.CreateModel(
@@ -83,12 +83,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='page',
             name='groups_edit',
-            field=models.ManyToManyField(related_name='page_users_edit', through='wiki.PageGroupEdit', to='myauth.Group', blank=True),
+            field=models.ManyToManyField(related_name='page_groups_edit', through='wiki.PageGroupEdit', to='myauth.MyGroup', blank=True),
         ),
         migrations.AddField(
             model_name='page',
             name='groups_view',
-            field=models.ManyToManyField(related_name='page_users_view', through='wiki.PageGroupView', to='myauth.Group', blank=True),
+            field=models.ManyToManyField(related_name='page_groups_view', through='wiki.PageGroupView', to='myauth.MyGroup', blank=True),
         ),
         migrations.AddField(
             model_name='page',

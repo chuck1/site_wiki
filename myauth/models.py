@@ -113,13 +113,16 @@ class MyUser(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-class Group(models.Model):
+class MyGroup(models.Model):
+    name = models.CharField(max_length=256)
     users = models.ManyToManyField(MyUser, related_name = "group_users", 
             blank=True, through='UserGroup')
-
+    def __unicode__(self):
+        return self.name
+        
 class UserGroup(models.Model):
     user = models.ForeignKey(MyUser)
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(MyGroup)
 
 class Confirmation(models.Model):
     code = models.IntegerField()

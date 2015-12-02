@@ -9,7 +9,7 @@ import subprocess
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 import django.core.management
 import django.core.exceptions
@@ -476,7 +476,10 @@ def process_data(request):
 	
 @login_required
 def edit(request):
-	if not (request.method == 'POST'):
+
+
+    
+        if not (request.method == 'POST'):
 		return HttpResponseNotFound()
 
 	try:
@@ -486,6 +489,15 @@ def edit(request):
 		#return HttpResponseNotFound()
 
 	patch = Patch.objects.get(pk=patch_id)
+
+        page = patch.page
+
+        # check permissions
+        if not page.check_perm_edit(request.user):
+            if request.user.is_anonymous():
+                return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
+            else:
+                return HttpResponse("Forbidden")
 
 	#print 'orig',repr(patch.orig)
 	
@@ -537,7 +549,7 @@ def page_static(request, path0):
 	
 	return HttpResponse(html)
 
-@login_required	
+#@login_required	
 def page(request, path0):
 
         # look for static first
@@ -560,7 +572,10 @@ def page(request, path0):
         
         # check permissions
         if not page.check_perm_view(request.user):
-            raise django.core.exceptions.PermissionDenied()
+            if request.user.is_anonymous():
+                return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
+            else:
+                return HttpResponse("Forbidden")
        
         permission_edit = page.check_perm_edit(request.user)
         
