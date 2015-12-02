@@ -20,8 +20,10 @@ from django.contrib.auth import views as auth_views
 import myauth.views
 import wiki.views
 import task.views
+import site_wiki.views
 
 urlpatterns = [
+    url(r'^$', site_wiki.views.home, name='site_wiki_home'),
     url(r'^accounts/login/$', auth_views.login, name='logout'),
     url(r'^accounts/register/$', myauth.views.register),
     url(r'^accounts/logout/$', myauth.views.logout),

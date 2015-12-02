@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 from django.conf import settings
 import django.core.management
+import django.core.exceptions
 
 from .models import Page, Patch, Lock
 import wiki.forms
@@ -147,7 +148,7 @@ def create_diff(lines_a, lines_b, filename):
 
 def apply_diff(patch, raw):
 
-	r = git.Repo(settings.WIKI_SRC_ROOT)
+	r = git.Repo(settings.WIKI_SOURCE_DIR)
 	
 	#filename = 'a'
 	
@@ -203,9 +204,9 @@ def apply_diff_2(patch, raw):
 	"""
 	path = patch.page.path
 	npath = os.path.normpath(path)
-	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath + '.md')
+	src_path = os.path.join(settings.WIKI_SOURCE_DIR, npath + '.md')
 
-	r = git.Repo(settings.WIKI_SRC_ROOT)
+	r = git.Repo(settings.WIKI_SOURCE_DIR)
 
 	# switch to my unique branch
 	
@@ -277,13 +278,13 @@ def apply_diff_3(patch, raw):
         e_s = wiki.util.convert_ext_b2s(e_b)
 
         
-	src_path = os.path.join(settings.WIKI_SRC_ROOT, npath_noex + e_s)
+	src_path = os.path.join(settings.WIKI_SOURCE_DIR, npath_noex + e_s)
 
         print 'ext s ', e_s
         print 'ext b ', e_b
         print 'path s', src_path
 	
-	r = git.Repo(settings.WIKI_SRC_ROOT)
+	r = git.Repo(settings.WIKI_SOURCE_DIR)
 	
 	r.git.execute(['git', 'checkout', patch.commit_orig])
 	r.git.execute(['git', 'checkout', '-b', 'auto_{}'.format(patch.id)])
@@ -527,9 +528,9 @@ def page_static(request, path0):
 	
 	path = os.path.normpath(path0)
 	
-	dir = os.path.dirname(path)
+	#dir = os.path.dirname(path)
 	
-	build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
+	build_path = os.path.join(settings.WIKI_BUILD_DIR, path)
 	
 	with open(build_path, 'r') as f:
 		html = f.read()
@@ -539,24 +540,39 @@ def page_static(request, path0):
 @login_required	
 def page(request, path0):
 
+        # look for static first
+        build_static_path = os.path.join(settings.WIKI_SEMISTATIC_DIR, path0)
+        print 'look for', repr(build_static_path)
+        if os.path.exists(build_static_path):
+	    with open(build_static_path, 'r') as f:
+		html = f.read()
+	    
+	    return HttpResponse(html)
+        
+	try:
+	    page = Page.objects.get(path=path0)
+	except Exception as e:
+	    page = Page()
+            page.user_create = request.user
+	    page.path = path0
+	    page.save()
+	    #return HttpResponse(str(e))
+        
+        # check permissions
+        if not page.check_perm_view(request.user):
+            raise django.core.exceptions.PermissionDenied()
+       
+        permission_edit = page.check_perm_edit(request.user)
+        
         print request.META['REMOTE_ADDR']
         
 	path = os.path.normpath(path0)
         
         path_noex, ex = os.path.splitext(path)
         
-        source_path = os.path.join(settings.WIKI_SRC_ROOT,
+        source_path = os.path.join(settings.WIKI_SOURCE_DIR,
                 path_noex + wiki.util.convert_ext_b2s(ex))
- 
-	
-	try:
-	    page = Page.objects.get(path=path0)
-	except Exception as e:
-	    page = Page()
-	    page.path = path0
-	    page.save()
-	    #return HttpResponse(str(e))
-        
+
         build_path = page.get_build_abspath()
         #build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
 	
@@ -568,7 +584,7 @@ def page(request, path0):
 	j_data = wiki.util.get_data_file(source_path)
 	
 	# get HEAD commit string
-	r = git.Repo(settings.WIKI_SRC_ROOT)
+	r = git.Repo(settings.WIKI_SOURCE_DIR)
 	s = r.head.commit.__str__()
 	
 	# create a new Patch object
@@ -600,6 +616,7 @@ def page(request, path0):
 	c = {
                 'link_list':    ll,
 		'page':		page,
+                'permission_edit': permission_edit,
                 'folder':       dir,
 		'path':         path0,
 		'patch_id':     patch.id,

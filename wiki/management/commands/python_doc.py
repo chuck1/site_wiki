@@ -13,6 +13,8 @@ def gen(mod_name, output_dir):
 	'''
 	generate HTML documentation
 	'''
+        print 'import module', repr(mod_name)
+
         mod_main = importlib.import_module(mod_name)
 
         mod_list = mod_main.PYDOC_LIST
@@ -28,7 +30,14 @@ def gen(mod_name, output_dir):
 	for x in mod_list:
 		mod = importlib.import_module(x)
 
-		fn = os.path.join(output_dir, x+'.html')
+                fn = os.path.join(output_dir, x+'.html')
+
+                folder = os.path.dirname(fn)
+
+                try:
+                    os.makedirs(folder)
+                except: pass
+
 		with open(fn, 'w') as f:
 			print 'writing ', fn
 			#f.write(d.document(sys.modules[x]))
@@ -62,7 +71,7 @@ class Command(BaseCommand):
         if makedir:
             output_dir = os.path.join(output_dir, module_name)
 
-	output_dir = os.path.join(settings.WIKI_BLD_ROOT, output_dir)
+	output_dir = os.path.join(settings.WIKI_SEMISTATIC_DIR, output_dir)
 		
 	print 'module', repr(module_name)
 	print 'dest  ', repr(output_dir)

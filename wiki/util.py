@@ -15,26 +15,26 @@ def convert_ext_b2s(e):
     return d[e]
 
 def glob_source_files():
-    for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
+    for root, dirs, files in os.walk(settings.WIKI_SOURCE_DIR):
 	for f in files:
             if f[-3:] == '.md':
                 yield os.path.relpath(os.path.join(root, f), settings.WIKI_SRC_DIR)
 
 def list_data_src():
-    for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
+    for root, dirs, files in os.walk(settings.WIKI_SOURCE_DIR):
 	for f in files:
 	    if f == 'data.txt':
 		path = os.path.join(root, f)
 		print path
 
 def get_data(f):
-	f = os.path.join(settings.WIKI_SRC_ROOT, f)
+	f = os.path.join(settings.WIKI_SOURCE_DIR, f)
 	with open(f, 'r') as f:
 		s = f.read()
 	return json.loads(s)
 
 def get_data_dir(dir):
-	path = os.path.join(settings.WIKI_SRC_ROOT, dir, 'data.txt')
+	path = os.path.join(settings.WIKI_SOURCE_DIR, dir, 'data.txt')
 	if not os.path.exists(path): return None
 	with open(path, 'r') as f:
 		s = f.read()
@@ -42,7 +42,7 @@ def get_data_dir(dir):
 
 def get_data_file(f):
 	f,_ = os.path.splitext(f)
-	path = os.path.join(settings.WIKI_SRC_ROOT, f + '.txt')
+	path = os.path.join(settings.WIKI_SOURCE_DIR, f + '.txt')
 	if not os.path.exists(path): return None
 	with open(path, 'r') as f:
 		s = f.read()
@@ -61,7 +61,7 @@ def flt_folders(x):
 	return True
 
 def mylistdir(dir, flt):
-	lst = os.listdir(os.path.join(settings.WIKI_SRC_ROOT, dir))
+	lst = os.listdir(os.path.join(settings.WIKI_SOURCE_DIR, dir))
 	
 	lst = filter(flt, lst)
 	
@@ -78,7 +78,15 @@ def mylistdir(dir, flt):
 		return cmp(x,y)
 	
 	lst = sorted(lst, srt)
-	
+
+        def flt2(x):
+            h,e = os.path.splitext(x)
+            if e == '.txt':
+                return False
+            return True
+
+        lst = filter(flt2, lst)
+
 	def proc(x):
 		#print 'x',x
 		x = x.replace('\\','/')
@@ -164,10 +172,10 @@ class FileListGenerator(object):
 		
 		tree = [{},[]]
 		
-		for root, dirs, files in os.walk(settings.WIKI_SRC_ROOT):
+		for root, dirs, files in os.walk(settings.WIKI_SOURCE_DIR):
 			#print 'root',root
 			#print 'dirs',dirs
-			root = os.path.relpath(root, settings.WIKI_SRC_ROOT)
+			root = os.path.relpath(root, settings.WIKI_SOURCE_DIR)
 			
 			#h,t = os.path.split(root)
 			#print repr(h),repr(t),repr(root)

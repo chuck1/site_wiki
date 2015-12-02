@@ -114,20 +114,16 @@ AUTH_USER_MODEL = 'myauth.MyUser'
 
 STATIC_URL = '/static/'
 
-WIKI_ROOT = settings_local.WIKI_ROOT
-WIKI_DIR = settings_local.WIKI_ROOT
-WIKI_SEMISTATIC_DIR = os.path.join(WIKI_DIR, 'semistatic')
+WIKI_SOURCE_DIR     = settings_local.WIKI_SOURCE_DIR
+WIKI_BUILD_DIR      = settings_local.WIKI_BUILD_DIR
+WIKI_SEMISTATIC_DIR = settings_local.WIKI_SEMISTATIC_DIR
+
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     'P:\\media',
     WIKI_SEMISTATIC_DIR,
 )
-
-WIKI_SRC_ROOT = os.path.join(WIKI_ROOT, 'source')
-WIKI_BLD_ROOT = os.path.join(WIKI_ROOT, 'build')
-WIKI_SRC_DIR = WIKI_SRC_ROOT
-WIKI_BLD_DIR = WIKI_BLD_ROOT
 
 # email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
