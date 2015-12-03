@@ -276,7 +276,6 @@ def apply_diff_3(patch, raw):
         
         npath_noex, e_b = os.path.splitext(npath)
         e_s = wiki.util.convert_ext_b2s(e_b)
-
         
 	src_path = os.path.join(settings.WIKI_SOURCE_DIR, npath_noex + e_s)
 
@@ -297,7 +296,9 @@ def apply_diff_3(patch, raw):
 	for d in diffs:
 		print '  {}'.format(d.a_path)
 	
-	r.git.execute(['git', 'add', diffs[0].a_path])
+        r.git.execute(['git', 'add', npath_noex + e_s])
+	#r.git.execute(['git', 'add', npath])
+	#r.git.execute(['git', 'add', diffs[0].a_path])
 	r.git.execute(['git', 'commit', '-m', '\'auto for {}\''.format(path)])
 	
 	r.git.execute(['git', 'checkout', 'master'])
@@ -407,18 +408,18 @@ def get_mtime(path):
 
 def requires_update(src, dst):
     s = os.path.getmtime(src)
-    print
-    print 'requires_update'
-    print src
-    print dst
-    print s
+    #print
+    #print 'requires_update'
+    #print src
+    #print dst
+    #print s
     if os.path.exists(dst):
         d = os.path.getmtime(dst)
-        print d
+        #print d
     else:
         return True
-    print s > d
-    print
+    #print s > d
+    #print
     return s > d
 
 def get_contents(path):
@@ -473,7 +474,14 @@ def process_data(request):
 	page_id = request.POST['page_id']
 	page = Page.objects.get(pk=page_id)
 	return HttpResponseRedirect('{}'.format(page.path))
-	
+
+@user_passes_test(lambda u: u.is_admin)
+def commit_all(request):
+    path = request.POST['path']
+    django.core.management.call_command('commit_all', 
+            'manual commit all from page "{}"'.format(path))
+    return HttpResponseRedirect('{}'.format(path))
+    
 @login_required
 def edit(request):
 
@@ -628,7 +636,14 @@ def page(request, path0):
 	# get HEAD commit string
 	r = git.Repo(settings.WIKI_SOURCE_DIR)
 	s = r.head.commit.__str__()
-	
+        ret = r.git.execute(["git","status"])
+
+        is_dirty=False
+        if not "nothing to commit, working directory clean" in ret:
+            print "GIT REPO IS DIRTY"
+            is_dirty = True
+
+
 	# create a new Patch object
 	patch = Patch()
 	patch.user = request.user
@@ -656,6 +671,7 @@ def page(request, path0):
         ll = link_list(h)
 
 	c = {
+                'is_dirty':     is_dirty,
                 'link_list':    ll,
 		'page':		page,
                 'permission_edit': permission_edit,
@@ -726,9 +742,7 @@ def search(request):
 
 @login_required	
 def folder_create(request):
-
     if request.method == 'POST':
-
 	form = CreateFolderForm(request.POST)
 
         parent_path = request.POST['path']
@@ -739,14 +753,16 @@ def folder_create(request):
             
             path = os.path.join(settings.WIKI_SOURCE_DIR, parent_path, relpath)
             
-            print 'create folder'
-            print path
+            #print 'create folder'
+            #print path
             
  	    django.core.management.call_command('makedirs', path)
             
-	    return HttpResponseRedirect(os.path.join('/wiki', parent_path, relpath, 'index'))
+	    return HttpResponseRedirect(os.path.join('/wiki', 
+                parent_path, relpath, 'index.html'))
        	else:
-            return render(request, 'wiki/folder_create.html', {'form':form, 'path':parent_path})
+            return render(request, 'wiki/folder_create.html', 
+                    {'form':form, 'path':parent_path})
  
     form = CreateFolderForm()
     
