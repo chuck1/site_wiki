@@ -19,7 +19,7 @@ class Command(BaseCommand):
         if not options['locked']:
             lock = wiki.util.acquire_lock()
 
-        r = git.Repo(settings.WIKI_SRC_ROOT)
+        r = git.Repo(settings.WIKI_SOURCE_DIR)
 	
 	r.git.execute(["git","add","--all"])
 	r.git.execute(["git","commit","-m",options['message']])

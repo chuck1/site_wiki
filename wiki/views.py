@@ -406,14 +406,14 @@ def get_mtime(path):
 	pass
 
 def requires_update(src, dst):
-    s = get_mtime(src)
+    s = os.path.getmtime(src)
     print
     print 'requires_update'
     print src
     print dst
     print s
     if os.path.exists(dst):
-        d = get_mtime(dst)
+        d = os.path.getmtime(dst)
         print d
     else:
         return True
@@ -549,17 +549,45 @@ def page_static(request, path0):
 	
 	return HttpResponse(html)
 
+def read_semistatic_image(path):
+    build_static_path = os.path.join(settings.WIKI_SEMISTATIC_DIR, path)
+    
+    with open(build_static_path, 'rb') as f:
+	data = f.read()
+    
+    return data
+ 
+
 #@login_required	
 def page(request, path0):
+        
+        print
+        print "PAGE ---------------------------------------------------"
+        print 'request'
+        print '    body     ', repr(request.body)
+        print '    path     ', request.path
+        print '    path_info', request.path_info
+        print '    META'
+        print '        CONTENT_TYPE', request.META['CONTENT_TYPE']
+        print '        HTTP_ACCEPT ', request.META['HTTP_ACCEPT']
+        print '        REMOTE_ADDR ', request.META['REMOTE_ADDR']
+        print 
+        
+        h,e = os.path.splitext(path0)
+        
 
-        # look for static first
-        build_static_path = os.path.join(settings.WIKI_SEMISTATIC_DIR, path0)
-        print 'look for', repr(build_static_path)
-        if os.path.exists(build_static_path):
-	    with open(build_static_path, 'r') as f:
-		html = f.read()
-	    
-	    return HttpResponse(html)
+        # handle relative paths for images
+        if request.META['HTTP_ACCEPT'][:5] == "image":
+            return HttpResponse(read_semistatic_image(path0), content_type="image/png")
+
+        # look for static html files first
+        if e == '.html':
+            build_static_path = os.path.join(settings.WIKI_SEMISTATIC_DIR, path0)
+            #print 'look for', repr(build_static_path)
+            if os.path.exists(build_static_path):
+	        with open(build_static_path, 'r') as f:
+		    html = f.read()
+	        return HttpResponse(html)
         
 	try:
 	    page = Page.objects.get(path=path0)
@@ -579,7 +607,6 @@ def page(request, path0):
        
         permission_edit = page.check_perm_edit(request.user)
         
-        print request.META['REMOTE_ADDR']
         
 	path = os.path.normpath(path0)
         
@@ -710,7 +737,7 @@ def folder_create(request):
             
 	    relpath = form.cleaned_data['relpath']
             
-            path = os.path.join(settings.WIKI_SRC_DIR, parent_path, relpath)
+            path = os.path.join(settings.WIKI_SOURCE_DIR, parent_path, relpath)
             
             print 'create folder'
             print path
@@ -740,7 +767,7 @@ def file_create(request):
             
 	    relpath = form.cleaned_data['relpath']
             
-            path = os.path.join(settings.WIKI_SRC_DIR, parent_path, relpath)
+            path = os.path.join(settings.WIKI_SOURCE_DIR, parent_path, relpath)
             
             print 'create file'
             print path
