@@ -40,4 +40,8 @@ div.head {
 	background-color: #DDDDDD;
 }
 
+input.warn {
+	background-color: #FF0000;
+	color: #FFFFFF;
+}
 
