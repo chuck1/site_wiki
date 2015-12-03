@@ -8,8 +8,11 @@ table, tr, td {
 
 .question {
 	background-color: #FAFF73;
-	
 }
+.green {
+	background-color: #66ff66;
+}
+
 form {
 	margin: 0px;
 }
