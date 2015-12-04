@@ -20,6 +20,8 @@ import wiki.util
 import wiki.search
 from .forms import SearchForm, CreateFolderForm, CreateFileForm
 
+for p in sys.path: print p
+
 # markdown extensions
 import markdown.extensions.tables
 import markdown_extension_blockmod
@@ -578,7 +580,7 @@ def page(request, path0):
         print '    path     ', request.path
         print '    path_info', request.path_info
         print '    META'
-        print '        CONTENT_TYPE', request.META['CONTENT_TYPE']
+        #print '        CONTENT_TYPE', request.META['CONTENT_TYPE']
         print '        HTTP_ACCEPT ', request.META['HTTP_ACCEPT']
         print '        REMOTE_ADDR ', request.META['REMOTE_ADDR']
         print 
@@ -602,11 +604,11 @@ def page(request, path0):
 	try:
 	    page = Page.objects.get(path=path0)
 	except Exception as e:
-	    page = Page()
-            page.user_create = request.user
-	    page.path = path0
-	    page.save()
-	    #return HttpResponse(str(e))
+	    #page = Page()
+            #page.user_create = request.user
+	    #page.path = path0
+	    #page.save()
+	    return HttpResponse(str(e))
         
         # check permissions
         if not page.check_perm_view(request.user):

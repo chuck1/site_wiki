@@ -112,7 +112,9 @@ AUTH_USER_MODEL = 'myauth.MyUser'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static_site_work/'
+
+STATIC_ROOT = '/home/crymal/static/site_work'
 
 WIKI_SOURCE_DIR     = settings_local.WIKI_SOURCE_DIR
 WIKI_BUILD_DIR      = settings_local.WIKI_BUILD_DIR
@@ -121,7 +123,6 @@ WIKI_SEMISTATIC_DIR = settings_local.WIKI_SEMISTATIC_DIR
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
-    'P:\\media',
     WIKI_SEMISTATIC_DIR,
 )
 

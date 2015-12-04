@@ -121,8 +121,12 @@ def child_link_html(dir):
 	
 	#for l in lst:
 	#	print '  {}'.format(l)
-	
+
 	raw = '\n'.join(lst)
+
+        print "child_link_html"
+        print repr(raw)
+
 	html = markdown.markdown(raw)
 	return html
 
