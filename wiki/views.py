@@ -305,7 +305,9 @@ def apply_diff_3(patch, raw):
 	
 	branch_name = 'auto_{}'.format(patch.id)
         
-        commit_message = "'auto merge for {}'".format('auto_{}'.format(patch.id))
+        commit_message = "auto merge for '{}' user='{}'".format(
+                'auto_{}'.format(patch.id),
+                str(patch.user))
 	
 	try:
 		r.git.execute(['git', 'merge', branch_name])
