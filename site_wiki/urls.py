@@ -24,9 +24,9 @@ import site_wiki.views
 
 urlpatterns = [
     url(r'^$', site_wiki.views.home, name='site_wiki_home'),
-    url(r'^accounts/login/$', auth_views.login, name='logout'),
-    url(r'^accounts/register/$', myauth.views.register),
-    url(r'^accounts/logout/$', myauth.views.logout),
+    url(r'^accounts/login/$', auth_views.login, name="accounts_login"),
+    url(r'^accounts/register/$', myauth.views.register, name="accounts_register"),
+    url(r'^accounts/logout/$', myauth.views.logout, name="accounts_logout"),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^myauth/',  include('myauth.urls')),
     url(r'^wiki/',  include('wiki.urls')),

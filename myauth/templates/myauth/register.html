@@ -1,5 +1,5 @@
 <table>
-<form action="/accounts/register/" method="post">
+<form action="{% url 'accounts_register' %}" method="post">
 	{% csrf_token %}
 	{{ form }}
 	<input type="submit" value="Submit" />

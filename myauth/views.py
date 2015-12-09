@@ -2,6 +2,9 @@ from django.shortcuts import render
 #from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.conf import settings
+from django.core.urlresolvers import reverse
+import django.contrib.auth
+import django.core.urlresolvers
 
 # Create your views here.
 
@@ -37,9 +40,10 @@ def register(request):
             else:
                 print 'register success'
 
+                href = reverse("accounts_login")+"?next={}".format(nxt)
                 return HttpResponse('A confirmation link has been sent to your email.'
-                        '<br><a href="/accounts/login/?next={}">'
-                        'return to login</a>'.format(nxt))
+                        '<br><a href="{}">'
+                        'return to login</a>'.format(href))
         else:
             print 'register failure'
     else:
@@ -55,14 +59,19 @@ def register(request):
 
 def address_next(request):
     try:
-        n = request.GET['next']
+        return request.GET['next']
     except:
-        n = '/'
+        return django.core.urlresolvers.get_script_prefix()
 
 def logout(request):
     django.contrib.auth.logout(request)
     
-    HttpResponseRedirect('/accounts/login?next={}'.format(address_next(request)))
+    n = address_next(request)
+    n = django.core.urlresolvers.get_script_prefix()
+
+    href = reverse("accounts_login") + "?next={}".format(n)
+    print "redirect to",href
+    return HttpResponseRedirect(href)
 
 
 

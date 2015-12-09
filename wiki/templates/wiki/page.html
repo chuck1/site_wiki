@@ -1,18 +1,19 @@
+{% extends 'base.html' %}
 {% load staticfiles %}
-<html>
-	<head>
-	<link rel="stylesheet" type="text/css" href="{% static 'wiki/default.css' %}"></link>
-		<script type="text/x-mathjax-config">
-			MathJax.Hub.Config({
-			  tex2jax: {inlineMath: [['\\(','\\)']]}
-			});
-		</script>
-		<script type="text/javascript"
-			src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-		</script>
-	</head>
-	<body>
-		<div class="head">
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'wiki/default.css' %}"></link>
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+	  tex2jax: {inlineMath: [['\\(','\\)']]}
+	});
+</script>
+<script type="text/javascript"
+	src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+{% endblock %}
+
+{% block bodyhead %}
 		path={{ path }}<br>
 		patch_id={{ patch_id }}<br>
 		user={{ user }} ({{ user.is_admin }})<br>
@@ -67,9 +68,9 @@
 		{% autoescape off %}{{ child_list }}{% endautoescape %}
 		siblings<br>
 		{% autoescape off %}{{ sibling_list }}{% endautoescape %}
-		</div>
+{% endblock %}
 
-		{% autoescape off %}{{ body }}{% endautoescape %}
-	</body>
-</html>
+{% block content %}
+{% autoescape off %}{{ body }}{% endautoescape %}
+{% endblock %}
 

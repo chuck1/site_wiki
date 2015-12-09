@@ -13,6 +13,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 import django.core.management
 import django.core.exceptions
+import django.core.urlresolvers
 
 from .models import Page, Patch, Lock
 import wiki.forms
@@ -24,7 +25,9 @@ for p in sys.path: print p
 
 # markdown extensions
 import markdown.extensions.tables
+# custom
 import markdown_extension_blockmod
+import markdown_extension_link
 import markdown_extension_numbering
 
 ####################################################
@@ -349,10 +352,15 @@ def get_build(src, dst, path_rel_build):
             raw = get_contents(src)
     
             #body = markdown.markdown(raw)
-        	
+            
+            prefix = django.core.urlresolvers.get_script_prefix()
+            print "get_script_prefix", repr(prefix)
+
             extensions=[
         		markdown.extensions.tables.TableExtension(),
-        		markdown_extension_blockmod.MyExtension()]
+        		markdown_extension_blockmod.MyExtension(),
+        		markdown_extension_link.MyExtension(prefix),
+                        ]
         	
             try:
         	    numbering = j_data['numbering']
@@ -382,7 +390,9 @@ def get_build(src, dst, path_rel_build):
             p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src])
             p.communicate()
 
-        body = '<img src="/static/{}">'.format(path_rel_build)
+        prefix = django.core.urlresolvers.get_script_prefix() + 'wiki/'
+
+        body = '<img src="{}{}">'.format(prefix, path_rel_build)
 
     else:
         raise ValueError('invalid source extension')
@@ -526,8 +536,10 @@ def link_list(h):
     links = []
 
     while True:
+        
+        prefix = django.core.urlresolvers.get_script_prefix() + 'wiki/'
 
-        href = '/wiki/' + h + '/index.html' if h else '/wiki/index.html'
+        href = prefix + h + '/index.html' if h else '/wiki/index.html'
         h,t = os.path.split(h)
 
         '''
@@ -543,7 +555,7 @@ def link_list(h):
         if not h:
             break
 
-    links.insert(0, "<a href=\"{}\">{}</a>".format("/wiki/index.html","home"))
+    links.insert(0, "<a href=\"{}\">{}</a>".format(prefix+"index.html","home"))
 
     return "/".join(links)
 
@@ -592,6 +604,7 @@ def page(request, path0):
         if request.META['HTTP_ACCEPT'][:5] == "image":
             return HttpResponse(read_semistatic_image(path0), content_type="image/png")
 
+
         # look for static html files first
         if e == '.html':
             build_static_path = os.path.join(settings.WIKI_SEMISTATIC_DIR, path0)
@@ -604,16 +617,21 @@ def page(request, path0):
 	try:
 	    page = Page.objects.get(path=path0)
 	except Exception as e:
-	    #page = Page()
-            #page.user_create = request.user
-	    #page.path = path0
-	    #page.save()
-	    return HttpResponse(str(e))
+	    page = Page()
+            page.user_create = request.user
+	    page.path = path0
+	    page.save()
+	    #return HttpResponse(str(e))
         
+        prefix = django.core.urlresolvers.get_script_prefix()
+
         # check permissions
         if not page.check_perm_view(request.user):
             if request.user.is_anonymous():
-                return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
+
+                href = prefix + settings.LOGIN_URL
+                print "redirecting to {}".format(href)
+                return redirect('{}?next={}'.format(href, request.path))
             else:
                 return HttpResponse("Forbidden")
        

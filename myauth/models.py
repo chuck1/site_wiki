@@ -129,3 +129,5 @@ class Confirmation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     expire = models.DateTimeField(auto_now_add=True)
 
+
+

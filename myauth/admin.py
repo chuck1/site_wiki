@@ -51,6 +51,12 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
+class MyGroupAdmin(admin.ModelAdmin):
+    pass
+
+class MyUserGroupAdmin(admin.ModelAdmin):
+    list_display = ('user', 'group',)
+    pass
 
 class MyUserAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -78,11 +84,14 @@ class MyUserAdmin(UserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
+    def user_groups(self, obj):
+        return str(MyGroup.objects.filter(user=obj))
+
 # Now register the new UserAdmin...
 admin.site.register(MyUser, MyUserAdmin)
 admin.site.register(Confirmation)
-admin.site.register(MyGroup)
-admin.site.register(UserGroup)
+admin.site.register(MyGroup, MyGroupAdmin)
+admin.site.register(UserGroup, MyUserGroupAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)

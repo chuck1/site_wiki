@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.conf import settings
 import django.core.management
 
-
+@login_required
 def home(request):
-    return render(request, 'site_wiki/home.html', {})
+    return render(request, 'site_wiki/home.html', {'user':request.user})
 

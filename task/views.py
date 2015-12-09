@@ -54,7 +54,7 @@ def task_edit(request, task_id):
 			task.name = name
 			task.save()
 
-			return HttpResponseRedirect('/task/task_list')
+			return HttpResponseRedirect(reverse('task_list'))
 		else:
 			return render(request, 'task/task_edit.html', {
 				'form':form, 'task':task})
@@ -71,7 +71,7 @@ def task_set_hide_children(request, task_id, val):
     task.hide_children = bool(int(val))
     task.save()
 
-    return HttpResponseRedirect('/task/task_list')
+    return HttpResponseRedirect(reverse('task_list'))
 
 @login_required
 def task_action(request, task_id, ac):
@@ -80,8 +80,7 @@ def task_action(request, task_id, ac):
     
     task.action(ac, request.user)
 
-    return HttpResponseRedirect('/task/task_list')
-    
+    return HttpResponseRedirect(reverse('task_list'))
    
 @login_required
 def task_create(request, parent_task_id):
@@ -111,7 +110,7 @@ def task_create(request, parent_task_id):
 			print 'parent     ', parent_task
 
 
-			return HttpResponseRedirect('/task/task_list')
+			return HttpResponseRedirect(reverse('task_list'))
 		else:
 			return render(request, 'task/task_create.html', {
 				'form':form, 'parent_task':parent_task})

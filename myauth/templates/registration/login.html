@@ -32,7 +32,7 @@
 	<input type="hidden" name="next" value="{{ next }}" />
 </form>
 
-<form action="/accounts/register/">
+<form action="{% url 'accounts_register' %}">
 	{% csrf_token %}
 	<input type="submit" value="register" />
 	<input type="hidden" name="next" value="{{ next }}" />
