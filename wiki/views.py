@@ -304,7 +304,11 @@ def apply_diff_3(patch, raw):
         r.git.execute(['git', 'add', npath_noex + e_s])
 	#r.git.execute(['git', 'add', npath])
 	#r.git.execute(['git', 'add', diffs[0].a_path])
-	r.git.execute(['git', 'commit', '-m', '\'auto for {}\''.format(path)])
+        try:
+	    r.git.execute(['git', 'commit', '-m', '\'auto for {}\''.format(path)])
+        except git.GitCommandError as e:
+            # if nothing to commit, exit
+            return
 	
 	r.git.execute(['git', 'checkout', 'master'])
 	
@@ -337,7 +341,7 @@ def assert_dir(path):
 	except:
 		pass
 
-def get_build(src, dst, path_rel_build):
+def get_build(src, dst, path_rel_build, force_update=False):
     '''
     get the html for the src file and save it to dst file
     '''
@@ -380,19 +384,26 @@ def get_build(src, dst, path_rel_build):
     	        body = f.read()
             
     elif e_s == '.dot':
-        if requires_update(src, dst):
+        o,e = None, None
+        if requires_update(src, dst) or force_update:
             folder = os.path.dirname(dst)
             try:
                 os.makedirs(folder)
             except:
                 pass
-
-            p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src])
-            p.communicate()
-
+            
+            print "building", repr(src)
+            p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            o,e = p.communicate()
+        
         prefix = django.core.urlresolvers.get_script_prefix() + 'wiki/'
-
-        body = '<img src="{}{}">'.format(prefix, path_rel_build)
+        
+        body = ""
+        if o:
+            body += o+"<br>"
+        if e:
+            body += e+"<br>"
+        body += '<img src="{}{}">'.format(prefix, path_rel_build)
 
     else:
         raise ValueError('invalid source extension')
@@ -467,10 +478,14 @@ def edit_save(request):
         c = apply_diff_3(patch, raw)
         lock.delete()
 
-        patch.commit_edit = c
-	print 'patch.commit_edit', patch.commit_edit
-        
-        patch.save()
+        if c is None:
+            # nothing was commited
+            print "nothing to commit"
+            pass
+        else:
+            patch.commit_edit = c
+	    print 'patch.commit_edit', patch.commit_edit
+            patch.save()
 
 	return HttpResponseRedirect('{}'.format(patch.page.path))
 	
@@ -629,7 +644,8 @@ def page(request, path0):
         if not page.check_perm_view(request.user):
             if request.user.is_anonymous():
 
-                href = prefix + settings.LOGIN_URL
+                # setting contains prefix
+                href = settings.LOGIN_URL
                 print "redirecting to {}".format(href)
                 return redirect('{}?next={}'.format(href, request.path))
             else:
@@ -649,8 +665,14 @@ def page(request, path0):
         #build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
 	
         dir = os.path.dirname(path)
-	
-	body = get_build(source_path, build_path, path)
+
+        print "GET", request.GET
+
+        build = False
+        if "build" in request.GET:
+            build = True
+
+	body = get_build(source_path, build_path, path, build)
 	
 	# file data
 	j_data = wiki.util.get_data_file(source_path)
@@ -780,8 +802,10 @@ def folder_create(request):
             
  	    django.core.management.call_command('makedirs', path)
             
-	    return HttpResponseRedirect(os.path.join('/wiki', 
-                parent_path, relpath, 'index.html'))
+            href = django.core.urlresolvers.get_script_prefix() + os.path.join('wiki', 
+                    parent_path, relpath, 'index.html')
+
+	    return HttpResponseRedirect(href)
        	else:
             return render(request, 'wiki/folder_create.html', 
                     {'form':form, 'path':parent_path})
@@ -807,12 +831,15 @@ def file_create(request):
             
             path = os.path.join(settings.WIKI_SOURCE_DIR, parent_path, relpath)
             
-            print 'create file'
-            print path
+            #print 'create file'
+            #print path
             
  	    django.core.management.call_command('touch', path)
+
+            href = django.core.urlresolvers.get_script_prefix() + os.path.join('wiki', 
+                    parent_path, relpath)
             
-	    return HttpResponseRedirect(os.path.join('/wiki', parent_path, relpath))
+	    return HttpResponseRedirect(href)
        	else:
             return render(request, 'wiki/file_create.html', {'form':form, 'path':parent_path})
  
@@ -822,5 +849,19 @@ def file_create(request):
 
     return render(request, 'wiki/file_create.html', {'form':form, 'path':parent_path})
 
+@login_required
+def patch_list(request):
 
+    patches = list(Patch.objects.all())
+
+    def f(p):
+        return bool(p.commit_edit)
+
+    patches = filter(f, patches)
+
+    patches = sorted(patches, key=lambda x: x.datetime_create, cmp=lambda x,y: cmp(y,x))
+
+    patches = patches[:100]
+
+    return render(request, "wiki/patch_list.html", {"patches":patches})
 

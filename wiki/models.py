@@ -123,6 +123,7 @@ class Patch(models.Model):
 	commit_orig = models.CharField(max_length=200)
 	orig = models.TextField()
 	commit_edit = models.CharField(max_length=200)
+        datetime_create = models.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
 		if self.commit_edit:

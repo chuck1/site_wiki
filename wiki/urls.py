@@ -9,6 +9,7 @@ urlpatterns = [
 		url(r'^file_create$', views.file_create, name='wiki_file_create'),
 		url(r'^search$', views.search, name='wiki_search'),
 		url(r'^edit$', views.edit, name='edit'),
+		url(r'^patch_list$', views.patch_list, name='wiki_patch_list'),
 		url(r'^process_data$', views.process_data, name='process_data'),
 		url(r'^edit_save$', views.edit_save, name='edit_save'),
 		url(r'^test$', views.test, name='test'),

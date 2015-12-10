@@ -29,7 +29,7 @@ SECRET_KEY = 'hk8@0lef88isdjexgm7(e4xg^7%f4wbjpx*cf2h!xh+ru2t=sn'
 DEBUG = True
 
 # only server site through these addresses
-ALLOWED_HOSTS = ['192.168.56.2']
+ALLOWED_HOSTS = ['192.168.56.2','*']
 
 # allows debug info only when request comes from theses addresses
 INTERNAL_IPS = ['192.168.56.1']
@@ -119,11 +119,13 @@ STATIC_ROOT = '/home/crymal/static/site_work'
 WIKI_SOURCE_DIR     = settings_local.WIKI_SOURCE_DIR
 WIKI_BUILD_DIR      = settings_local.WIKI_BUILD_DIR
 WIKI_SEMISTATIC_DIR = settings_local.WIKI_SEMISTATIC_DIR
+WIKI_STATIC_DIR = settings_local.WIKI_STATIC_DIR
 
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     WIKI_SEMISTATIC_DIR,
+    WIKI_STATIC_DIR,
 )
 
 # email
@@ -135,5 +137,11 @@ EMAIL_USE_TLS = True
 #EMAIL_HOST_USER = "charles.rymal@nortek.com"
 EMAIL_HOST_USER = "CR3B88@nortek.com"
 EMAIL_HOST_PASSWORD = "Alpineglacier1"
+
+prefix = '/site_work/'
+
+LOGIN_REDIRECT_URL = prefix + 'accounts/login/'
+LOGIN_URL = prefix + 'accounts/login/'
+LOGOUT_URL = prefix + 'accounts/logout/'
 
 

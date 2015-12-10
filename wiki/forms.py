@@ -1,3 +1,4 @@
+import os
 from django import forms
 
 import wiki.util
@@ -12,7 +13,7 @@ class CreateFileForm(forms.Form):
     relpath = forms.CharField(max_length=1024)
 
     def clean(self):
-        cleaned_data = super(Register, self).clean()
+        cleaned_data = super(CreateFileForm, self).clean()
         relpath = cleaned_data.get("relpath")
 	
         h,e = os.path.splitext(relpath)
