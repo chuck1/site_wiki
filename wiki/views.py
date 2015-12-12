@@ -1,3 +1,4 @@
+import pdfkit
 import os, sys
 import markdown
 import time
@@ -14,6 +15,8 @@ from django.conf import settings
 import django.core.management
 import django.core.exceptions
 import django.core.urlresolvers
+from django.utils.encoding import smart_str
+from django.core.servers.basehttp import FileWrapper
 
 from .models import Page, Patch, Lock
 import wiki.forms
@@ -29,6 +32,7 @@ import markdown.extensions.tables
 import markdown_extension_blockmod
 import markdown_extension_link
 import markdown_extension_numbering
+import markdown_extension_equation_block
 
 ####################################################
 
@@ -124,6 +128,7 @@ def get_build(src, dst, path_rel_build, force_update=False):
         		markdown.extensions.tables.TableExtension(),
         		markdown_extension_blockmod.MyExtension(),
         		markdown_extension_link.MyExtension(prefix),
+        		markdown_extension_equation_block.MyExtension(),
                         ]
         	
             try:
@@ -153,7 +158,8 @@ def get_build(src, dst, path_rel_build, force_update=False):
                 pass
             
             print "building", repr(src)
-            p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(["dot", "-Tpng", "-o"+dst, src], 
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             o,e = p.communicate()
         
         prefix = django.core.urlresolvers.get_script_prefix() + 'wiki/'
@@ -608,6 +614,96 @@ def file_create(request):
     parent_path = request.GET['path']
 
     return render(request, 'wiki/file_create.html', {'form':form, 'path':parent_path})
+
+@login_required
+def page_download_pdf(request, page_id):
+
+        page = Page.objects.get(pk=page_id)
+
+	path = page.path
+        
+        path_noex, ex = os.path.splitext(path)
+        
+        source_path = os.path.join(settings.WIKI_SOURCE_DIR,
+                path_noex + wiki.util.convert_ext_b2s(ex))
+
+        build_path = page.get_build_abspath()
+        #build_path = os.path.join(settings.WIKI_BLD_ROOT, path)
+	
+        dirname = os.path.dirname(path)
+
+        #print "GET", request.GET
+
+	body = get_build(source_path, build_path, path, False)
+
+        c = {
+                #'is_dirty':     is_dirty,
+                #'link_list':    ll,
+		'page':		page,
+                #'permission_edit': permission_edit,
+                #'folder':       dir,
+		#'path':         path0,
+		#'patch_id':     patch.id,
+		'body':         body,
+		#'child_list':   child_list,
+		#'sibling_list': sibling_list,
+		#'parent_href':  parent_href,
+		'user':         request.user,
+		}
+
+        res = render(request, 'wiki/page.html', c)
+        
+        html = res.content
+
+        path_build = os.path.join(settings.WIKI_SEMISTATIC_DIR, path_noex + ".pdf")
+
+        dir_build = os.path.dirname(path_build)
+
+        try:
+            os.makedirs(dir_build)
+        except: pass
+
+        print "path_build =", path_build
+
+        try:
+            os.remove(path_build)
+        except Exception as e:
+            print "remove file failed"
+            print e
+        else:
+            print "remove file success"
+
+        if 1:
+            pdfkit.from_string(html, path_build, options={"--redirect-delay":10000})
+        else:
+            path_temp = os.path.join(settings.WIKI_SEMISTATIC_DIR, "temp")
+            with open(path_temp, "w") as f:
+                f.write(html)
+        
+            cmd = ["wkhtmltopdf", path_temp, path_build]
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            o,e = p.communicate()
+        
+            print "o",o
+            print "e",e
+       
+        prefix = django.core.urlresolvers.get_script_prefix()
+        href = prefix + "wiki/" + path
+
+        print "href =", href
+
+        f = open(path_build, "r")
+        myfile = django.core.files.File(f)
+
+        response = HttpResponse(FileWrapper(myfile), 
+                content_type='application/force-download')
+        #response = HttpResponse(content_type='application/force-download')
+        response['Content-Disposition'] = 'attachment; filename=%s' % smart_str("filename.pdf")
+        #response['X-Sendfile'] = smart_str(path_build)
+
+        return response
+
+        return HttpResponseRedirect(href)
 
 @login_required
 def patch_list(request):

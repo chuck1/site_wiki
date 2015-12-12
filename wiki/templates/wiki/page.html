@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block bodyhead %}
-		path={{ path }}<br>
+		page id={{ page.id }}<br>
+		path={{ page.path }}<br>
 		patch_id={{ patch_id }}<br>
 		user={{ user }} ({{ user.is_admin }})<br>
 		
@@ -72,5 +73,29 @@
 
 {% block content %}
 {% autoescape off %}{{ body }}{% endautoescape %}
+
+
 {% endblock %}
+
+{% block foot %}
+<script>
+$(function(){
+$("span.eqnum").each(function(i){
+	var name = $(this).attr("id");
+	//alert(name);
+	//alert("was: "+$(this).text());
+	var num = $("td#eq_"+name).text();
+	$(this).text(num);
+});
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
 

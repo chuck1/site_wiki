@@ -5,7 +5,9 @@ table, tr, td {
 	border: 1px solid black;
 	border-collapse: collapse;
 }
-
+span.eqnum {
+	font-weight: bold;
+}
 .question {
 	background-color: #FAFF73;
 }
