@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'myauth',
     'wiki',
     'task',
+    'sheets',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -80,7 +81,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'site_wiki.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
