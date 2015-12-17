@@ -5,7 +5,7 @@
 	<link rel="stylesheet" type="text/css" href="/style/python_spreadsheet.css">
 {% endblock %}
 
-{% content %}
+{% block content %}
 <form>
 <input type="submit" name="btn add row" value="add row"/>
 <input type="submit" name="btn add col" value="add col"/>
@@ -16,7 +16,9 @@
 <input type="" name="" value=""/>
 </form>
 
+{% autoescape off %}
 {{ html }}
+{% endautoescape %}
 
 <h2>Help</h2>
 

@@ -16,7 +16,11 @@ import sys
 import socket
 import importlib
 
-importlib.import_module("settings_local_"+socket.gethostname())
+filename = "settings_local_"+socket.gethostname()
+filename = filename.replace("-","_")
+
+settings_local = importlib.import_module("." + filename, "site_wiki")
+#import settings_local_crymal_VirtualBox
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

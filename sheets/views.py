@@ -2,12 +2,16 @@ import os
 import sys
 import socket
 import struct
-
+import subprocess
+import pickle
 
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 
-from .models import *
+import sheets.models
+
+import sheets.request
 
 # Create your views here.
 
@@ -16,50 +20,88 @@ def lock_sheet_sock():
 
 def unlock_sheet_sock():
     pass
-
-class Request(object):
-    def __init__(self, s, p): #sessid=None):
-        self.s = s
-        self.p = p
-        #self.sessid = sessid
-        
-    def do(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect(("", self.p))
-        
-        buf = pickle.dumps(self)
-        
-        self.s.send(struct.pack("i", len(buf)))
-        self.s.send(buf)
+   
+def send_request(p, r):
+    print "send request"
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("localhost", p))
     
-        self.read()
+    buf = pickle.dumps(r)
+    
+    # write
 
-        self.s.close()
+    s.send(struct.pack("i", len(buf)))
+    s.send(buf)
+    
+    # read
+    print "recv 4"
+    buf = s.recv(4)
+    l = struct.unpack("i", buf)[0]
+    print "recv", l
+    buf = s.recv(l)
 
-    def read(self):
+    res = buf
 
-        buf = self.s.recv(4)
-        
-        l = struct.unpack("i", buf)
+    s.close()
 
-        buf = self.s.recv(l)
+    return res
 
-        self.res = buf
+def test_connection(p):
+    req = sheets.request.Request('test')
+    
+    res = send_request(p, req)
+
+    print "test response", res
 
 def get_sheet(p):
-    req = ss.service.Request('get sheet', p) #sessid)
-    req.do()
+    req = sheets.request.Request('get sheet') #sessid)
     
-    if req.res[:5]=="error":
-        raise ValueError(req.res)
+    res = send_request(p, req)
     
-    sheet = pickle.loads(req.res)
+    if res[:5]=="error":
+        raise ValueError(res)
+    
+    sheet = pickle.loads(res)
     return sheet
 
 
 #def sheet(request, sheet_id):
 
+def launch_process(sheet):
+    print "open temps"
+    temps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    temps.bind(("", 0))
+    temps.listen(1)
     
+    tempport = temps.getsockname()[1]
+    print "tempport =", tempport
+
+    # launch bg process
+    path = os.path.join(settings.BASE_DIR, "sheets", "scripts", "bg0.py")
+    print "launching process path =", path
+    #pid = os.spawnl(os.P_NOWAIT, path, tempport, "sheet_{}.bin")
+    cmd = [path, str(tempport), "sheet_{}.bin".format(sheet.id)]
+    pid = subprocess.Popen(cmd).pid
+    
+    print "process launched pid =", pid
+    
+    print "accept connection"
+    conn, addr = temps.accept()
+    
+    print "recieve bytes"
+    buf = conn.recv(4)
+   
+    port = struct.unpack("i", buf)[0]
+
+    print "port =", port
+
+    temps.close()
+    
+    # save new port number
+    sheet.port = port
+    sheet.save()
+
+
 
 def sheet(request, sheet_id):
     #sessid,
@@ -70,7 +112,7 @@ def sheet(request, sheet_id):
 
     print request.session
 
-    sheet = get_object_or_404(Sheet, pk=sheet_id)
+    sheet = get_object_or_404(sheets.models.Sheet, pk=sheet_id)
     
     assert(request.user == sheet.user)
 
@@ -86,29 +128,16 @@ def sheet(request, sheet_id):
     # test if there already exists a socket
 
     if sheet.port == -1:
-    
-        temps = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        temps.bind(("", 0))
-        temps.listen(1)
-    
-        tempport = temps.getsockname()[1]
-
-
-        # launch bg process
-        path = os.path.join(settings.BASE_DIR, "sheets", "scripts", "bg0.py")
-        os.spawnl(os.P_NOWAIT, path, tempport, "sheet_{}.bin")
+        launch_process(sheet)
+    else:
+        print "test connection"
         
-        conn, addr = temps.accept()
-        
-        buf = conn.recv(4)
-   
-        port = struct.unpack("i", buf)
-
-        temps.close()
-        
-        # save new port number
-        sheet.port = port
-        sheet.save()
+        try:
+            test_connection(sheet.port)
+        except:
+            launch_process(sheet)
+        else:
+            print "connection success"
 
     unlock_sheet_sock()
 
@@ -116,17 +145,19 @@ def sheet(request, sheet_id):
     
     
     
-    html  = et.tostring(form_sheet_ctrl(sessid))
-    html += "\n"
-    html += sheet.html(display_func, sessid)
+    #html  = et.tostring(form_sheet_ctrl(sessid))
+    #html += "\n"
+    html = sheetdata.html()#display_func, sessid)
+    
+    #html = repr(sheet)
 
     c = {
             "html": html,
-            "debug_lines": "\n".join("<pre>"+l+"</pre>" for l in debug_lines),
-            "debug": debug,
+            #"debug_lines": "\n".join("<pre>"+l+"</pre>" for l in debug_lines),
+            #"debug": debug,
             }
 
-    return render(request, "templates/sheet.html", c)
+    return render(request, "sheets/sheet.html", c)
 
 
 

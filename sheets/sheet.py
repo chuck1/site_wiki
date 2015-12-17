@@ -9,16 +9,6 @@ import struct
 import signal
 import datetime
 
-name_srv_w = "/tmp/python_spreadsheet_srv_w"
-name_cli_w = "/tmp/python_spreadsheet_cli_w"
-
-def cli_read():
-    with open(name_srv_w, 'rb') as f:
-        return f.read()
-
-def cli_write(s):
-    with open(name_cli_w, 'wb') as f:
-        f.write(s)
 
 
 def strhex(s):
@@ -217,9 +207,11 @@ class Sheet(object):
         except ValueError as e:
             return "ValueError:"+e.message
 
-    def html_col(self, row, r, c, display_func, sessid):
-
-        td = 0
+    def html_col(self, row, r, c, display_func=None, sessid=None):
+	
+	display_func = lambda c,sheet,y,x: c.str_value(sheet,y,x)
+        
+	td = 0
         td = et.Element('td')
         
         form = et.SubElement(td, 'form', attrib={
@@ -255,7 +247,7 @@ class Sheet(object):
 
         return td
 
-    def html(self, func, sessid):
+    def html(self, func=None, sessid=None):
         """
         func function used to render cell (value, formular, etc)
         """

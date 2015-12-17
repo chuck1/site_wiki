@@ -1,0 +1,15 @@
+bg0
+argv ['/home/crymal/backedup/git/site_wiki/sheets/scripts/bg0.py', '41255', 'sheet_1.bin']
+cwd /var/www
+connected
+start server
+port = 37075
+connection from ('127.0.0.1', 42514)
+recv bytes 4
+recieved 4 of 4 bytes
+recieved 'x\x00\x00\x00' 120
+recv bytes 120
+recieved 120 of 120 bytes
+buf   "ccopy_reg\n_reconstructor\np0\n(csheets.request\nRequest\np1\nc__builtin__\nobject\np2\nNtp3\nRp4\n(dp5\nS's'\np6\nS'get sheet'\np7\nsb."
+req   <sheets.request.Request object at 0x7fa1b1f80fd0>
+req   get sheet
