@@ -6,6 +6,8 @@ from django.utils import timezone
 class Task(models.Model):
 	name = models.CharField(max_length=128)
 
+        priority = models.IntegerField(default=0)
+
         parent = models.ForeignKey('Task', blank=True, null=True)
 	
 	user_create = models.ForeignKey(settings.AUTH_USER_MODEL,

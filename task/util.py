@@ -4,6 +4,27 @@ from .models import Task
 
 import xml.etree.ElementTree as ET
 
+import numpy
+
+class StyleGenerator(object):
+    def __init__(self, cm, priority_max, scale):
+        self.cm = cm
+        self.p_max = priority_max
+        self.scale = scale
+
+    def bg(self, task):
+        if self.p_max == 0:
+            x = 0
+        else:
+            x = float(task.priority) / float(self.p_max) * self.scale
+
+        c = self.cm(x)[:3]
+        
+        s = "#" + "".join(["{:02X}".format(x) for x in (numpy.array(c)*255).astype(int)])
+        
+        return s
+
+
 def task_tree_insert(tree, line):
 	
 	if not line:
@@ -46,7 +67,7 @@ def func_item(e, d):
 	e.attrib['style'] = "padding-left:{}px".format(d*20)
 	return e
 
-def func(parent, i, e, d):
+def func(parent, i, e, d, styleGen):
 	#t = ET.SubElement(e, 'table')
 	tr = ET.SubElement(e, 'tr')
         
@@ -97,10 +118,11 @@ def func(parent, i, e, d):
 
 	td = ET.SubElement(tr, 'td')
 	td.text = str(i)
-	td.attrib['style'] = "padding-left:{}px".format(d*20)
+        td.attrib['style'] = "padding-left:{}px;background-color:{}".format(
+                d*20, styleGen.bg(i))
 
 
-def element_tree(parent, tree, c = None, d = 0):
+def element_tree(parent, tree, styleGen, c = None, d = 0):
 	
         #if parent:
         #    print 'parent',parent.id
@@ -121,11 +143,11 @@ def element_tree(parent, tree, c = None, d = 0):
 	for task, subtree in items:
 	    #e = func_item(c, d)
 	    
-            func(parent, task, c, d)
+            func(parent, task, c, d, styleGen)
 	    
 	    if subtree:
                 if not task.hide_children:
-		    element_tree(task, subtree, c, d+1)
+		    element_tree(task, subtree, styleGen, c, d+1)
 
 	if c_null:
 	    return ET.tostring(c,method='html')
