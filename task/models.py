@@ -8,6 +8,8 @@ class Task(models.Model):
 
         priority = models.IntegerField(default=0)
 
+        bool_wait_for_feedback = models.BooleanField(default=False)
+
         parent = models.ForeignKey('Task', blank=True, null=True)
 	
 	user_create = models.ForeignKey(settings.AUTH_USER_MODEL,

@@ -36,7 +36,7 @@ def task_list(request):
 	print 'tasks',len(lst)
         print("priority", priority, numpy.max(priority))
 	
-        sg = task.util.StyleGenerator(cm.Reds, numpy.max(priority), 0.8)
+        sg = task.util.StyleGenerator(cm.Reds, cm.Greens, numpy.max(priority), 0.8)
 
 	el = task.util.element_tree(None, tree, sg)
 	
@@ -59,9 +59,11 @@ def task_edit(request, task_id):
 
 		name = form.cleaned_data['name']
 		priority = form.cleaned_data['priority']
+                bool_wait_for_feedback = form.cleaned_data["bool_wait_for_feedback"]
 
 		task.name = name
 		task.priority = priority
+		task.bool_wait_for_feedback = bool_wait_for_feedback
 		task.save()
 
 		return HttpResponseRedirect(reverse('task_list'))
@@ -69,7 +71,10 @@ def task_edit(request, task_id):
 		return render(request, 'task/task_edit.html', {
 			'form':form, 'task':task})
 	
-        form = TaskEditForm(initial={'name':task.name,'priority':task.priority})
+        form = TaskEditForm(initial={
+            'name':task.name,
+            'priority':task.priority,
+            "bool_wait_for_feedback":task.bool_wait_for_feedback})
 
 	return render(request, 'task/task_edit.html', {'form':form, 'task':task})
 

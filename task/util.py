@@ -7,8 +7,9 @@ import xml.etree.ElementTree as ET
 import numpy
 
 class StyleGenerator(object):
-    def __init__(self, cm, priority_max, scale):
-        self.cm = cm
+    def __init__(self, cm0, cm1, priority_max, scale):
+        self.cm0 = cm0
+        self.cm1 = cm1
         self.p_max = priority_max
         self.scale = scale
 
@@ -18,7 +19,10 @@ class StyleGenerator(object):
         else:
             x = float(task.priority) / float(self.p_max) * self.scale
 
-        c = self.cm(x)[:3]
+        if task.bool_wait_for_feedback:
+            c = self.cm1(x)[:3]
+        else:
+            c = self.cm0(x)[:3]
         
         s = "#" + "".join(["{:02X}".format(x) for x in (numpy.array(c)*255).astype(int)])
         
@@ -28,15 +32,15 @@ class StyleGenerator(object):
 def task_tree_insert(tree, line):
 	
 	if not line:
-		return
+	    return
 	
 	first = line.pop(0)
 	
 	try:
-		tree = tree[first]
+	    tree = tree[first]
 	except KeyError as e:
-		tree[first] = dict()
-		tree = tree[first]
+	    tree[first] = dict()
+	    tree = tree[first]
 	
 	task_tree_insert(tree, line)
 
