@@ -124,24 +124,28 @@ def get_build(src, dst, path_rel_build, force_update=False):
             prefix = django.core.urlresolvers.get_script_prefix()
             print "get_script_prefix", repr(prefix)
 
+            print "markdown extensions"
             extensions=[
         		markdown.extensions.tables.TableExtension(),
         		markdown_extension_blockmod.MyExtension(),
         		markdown_extension_link.MyExtension(prefix),
-        		markdown_extension_equation_block.MyExtension(),
+        		#markdown_extension_equation_block.MyExtension(),
                         ]
         	
             try:
-        	    numbering = j_data['numbering']
+        	numbering = j_data['numbering']
             except:
-        	    pass
+        	pass
             else:
-        	    extensions.append(markdown_extension_numbering.MyExtension(numbering))
-        	
+        	extensions.append(markdown_extension_numbering.MyExtension(numbering))
+            
+            print "markdown"
             body = markdown.markdown(raw, extensions)
-        	
+            print "markdown 1"
+
             assert_dir(dst)
-        	
+            	
+            print "write",repr(dst)
             with open(dst, 'w') as f:
         	f.write(body)
         else:
@@ -438,7 +442,9 @@ def page(request, path0):
         if "build" in request.GET:
             build = True
 
+        print "get build 0"
 	body = get_build(source_path, build_path, path, build)
+        print "get build 1"
 	
 	# file data
 	j_data = wiki.util.get_data_file(source_path)
@@ -453,8 +459,8 @@ def page(request, path0):
             print "GIT REPO IS DIRTY"
             is_dirty = True
 
-
 	# create a new Patch object
+        print "create patch"
 	patch = Patch()
 	patch.user = request.user
 	patch.page = page
