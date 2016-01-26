@@ -81,6 +81,9 @@ def func(parent, i, e, d, styleGen):
         tr.attrib['data-depth'] = str(d)
 
 	td = ET.SubElement(tr, 'td')
+        td.text = str(i.id)
+
+        td = ET.SubElement(tr, 'td')
 	f = ET.SubElement(td, 'form')
 	f.attrib['action'] = reverse('task_edit', args=[i.id])
 	ip = ET.SubElement(f, 'input')
@@ -121,7 +124,10 @@ def func(parent, i, e, d, styleGen):
             ip.attrib['data-id'] = str(i.id)
 
 	td = ET.SubElement(tr, 'td')
-	td.text = str(i)
+	
+        #td.text = str(i)
+	td.text = i.name
+
         td.attrib['style'] = "padding-left:{}px;background-color:{}".format(
                 d*20, styleGen.bg(i))
 

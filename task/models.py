@@ -68,8 +68,8 @@ class Task(models.Model):
 
 
 	def __unicode__(self):
-            return self.name
-            #return "{:4} {}".format(self.id,self.name)
+            #return self.name
+            return "{:4} {}".format(self.id,self.name)
 
 	def get_task_root(self):
 		if self.parent is not None:
