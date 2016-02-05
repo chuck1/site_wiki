@@ -546,8 +546,7 @@ def search(request):
             
             process_search_result_for_display(results)
 
-            return render(request, 'wiki/search.html', {'form':form, 
-                'results':results.items()})
+            return render(request, 'wiki/search.html', {'form':form, 'results':results.items()})
 	else:
 	    return render(request, 'wiki/search.html', {'form':form})
     

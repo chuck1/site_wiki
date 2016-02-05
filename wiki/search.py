@@ -5,6 +5,7 @@ import os
 import wiki.util
 
 from django.conf import settings
+import django.core.urlresolvers
 
 def cmp_mtime(p0, p1):
     if not os.path.isfile(p1):
@@ -58,8 +59,8 @@ def should_update_grep_lines(source_path, grep_path, pattern):
 
 def update_grep_lines(source_relpath, pattern):
     
-    grep_path = os.path.join(settings.WIKI_BLD_DIR, 'search_grep_files', source_relpath)
-    source_path = os.path.join(settings.WIKI_SRC_DIR, source_relpath)
+    grep_path = os.path.join(settings.WIKI_BUILD_DIR, 'search_grep_files', source_relpath)
+    source_path = os.path.join(settings.WIKI_SOURCE_DIR, source_relpath)
     
     b, j = should_update_grep_lines(source_path, grep_path, pattern)
 
@@ -86,16 +87,20 @@ def update_grep_lines(source_relpath, pattern):
 def search(pattern):
     
     search_results = {}
-
+    
+    prefix = django.core.urlresolvers.get_script_prefix() + 'wiki/'
+    
     for source_relpath in wiki.util.glob_source_files():
         lines = update_grep_lines(source_relpath, pattern)
         if lines:
-            search_results[os.path.splitext(source_relpath)[0]] = lines
+            p = prefix + os.path.splitext(source_relpath)[0] + ".html"
+            search_results[p] = lines
 
-    for f,lst in search_results.items():
-        print f, len(lst)
+    for f, lst in search_results.items():
+        #print f, len(lst)
         for l in lst:
-            print l[2]
+            #print l[2]
+            pass
 
     return search_results
 

@@ -28,13 +28,13 @@ span.search_match {
 {% if results %}
 <h2>Results</h2>
 {% for f,lst in results %}
-<b><a href="/{{ f }}">{{ f }}</a></b><br>
-<div class="search_result">
-{% for n,l in lst %}
-<!--<span class="line_no">{{ n }}:</span> {{ l }}<br>-->
-<span class="line_no">{% autoescape off %}{{ n }}{% endautoescape %}:</span> {% autoescape off %}{{ l }}{% endautoescape %}<br>
-{% endfor %}
-</div>
+	<b><a href="{{ f }}">{{ f }}</a></b><br>
+	<div class="search_result">
+	{% for n,l in lst %}
+		<!--<span class="line_no">{{ n }}:</span> {{ l }}<br>-->
+		<span class="line_no">{% autoescape off %}{{ n }}{% endautoescape %}:</span> {% autoescape off %}{{ l }}{% endautoescape %}<br>
+	{% endfor %}
+	</div>
 {% endfor %}
 {% endif %}
 

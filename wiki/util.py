@@ -18,7 +18,7 @@ def glob_source_files():
     for root, dirs, files in os.walk(settings.WIKI_SOURCE_DIR):
 	for f in files:
             if f[-3:] == '.md':
-                yield os.path.relpath(os.path.join(root, f), settings.WIKI_SRC_DIR)
+                yield os.path.relpath(os.path.join(root, f), settings.WIKI_SOURCE_DIR)
 
 def list_data_src():
     for root, dirs, files in os.walk(settings.WIKI_SOURCE_DIR):
