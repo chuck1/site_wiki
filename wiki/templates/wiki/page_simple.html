@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'wiki/default.css' %}"></link>
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+	  tex2jax: {inlineMath: [['\\(','\\)']]}
+	});
+</script>
+<script type="text/javascript"
+	src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+{% endblock %}
+
+
+{% block content %}
+{% autoescape off %}{{ body }}{% endautoescape %}
+{% endblock %}
+
+{% block foot %}
+<script>
+$(function(){
+$("span.eqnum").each(function(i){
+	var name = $(this).attr("id");
+	//alert(name);
+	//alert("was: "+$(this).text());
+	var num = $("td#eq_"+name).text();
+	$(this).text(num);
+});
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

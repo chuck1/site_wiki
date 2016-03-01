@@ -366,9 +366,15 @@ def read_semistatic_image(path):
     
     return data
  
-
-#@login_required	
 def page(request, path0):
+    
+    return page2(request, path0, "wiki/page.html", False)
+
+def page_simple(request, path0):
+    
+    return page2(request, path0, "wiki/page_simple.html", True)
+
+def page2(request, path0, template_str, simple):
         
         print
         print "PAGE ---------------------------------------------------"
@@ -383,12 +389,10 @@ def page(request, path0):
         print 
         
         h,e = os.path.splitext(path0)
-        
 
         # handle relative paths for images
         if request.META['HTTP_ACCEPT'][:5] == "image":
             return HttpResponse(read_semistatic_image(path0), content_type="image/png")
-
 
         # look for static html files first
         if e == '.html':
@@ -498,10 +502,11 @@ def page(request, path0):
 		'child_list':   child_list,
 		'sibling_list': sibling_list,
 		'parent_href':  parent_href,
+                "simple_template": simple,
 		'user':         request.user,
 		}
 
-	return render(request, 'wiki/page.html', c)
+	return render(request, template_str, c)
 
 @login_required	
 def test(request):

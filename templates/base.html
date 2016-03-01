@@ -9,7 +9,10 @@
 <body>
 
 <div class="head">
+{% if not simple_template %}
 <a href="{% url 'accounts_logout' %}?next={{ next }}">logout</a><br>
+{% endif %}
+
 {% block bodyhead %}
 {% endblock %}
 </div>
