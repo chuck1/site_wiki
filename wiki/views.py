@@ -283,17 +283,15 @@ def commit_all(request):
     
 @login_required
 def edit(request):
-
-
     
         if not (request.method == 'POST'):
-		return HttpResponseNotFound()
+	    return HttpResponseNotFound()
 
 	try:
-		patch_id = request.POST['patch_id']
+	    patch_id = request.POST['patch_id']
 	except:
-		patch_id = None
-		#return HttpResponseNotFound()
+	    patch_id = None
+	    #return HttpResponseNotFound()
 
 	patch = Patch.objects.get(pk=patch_id)
 
@@ -301,7 +299,7 @@ def edit(request):
 
         # check permissions
         if not page.check_perm_edit(request.user):
-            if request.user.is_anonymous():
+            if not request.user.is_authenticated:
                 return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
             else:
                 return HttpResponse("Forbidden")
@@ -562,6 +560,14 @@ def search(request):
 
 @login_required	
 def folder_create(request):
+    # check permissions
+    if not request.user.is_authenticated:
+        return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
+    
+    if not request.user.is_admin:
+        return HttpResponse("Forbidden")
+
+    # the rest
     if request.method == 'POST':
 	form = CreateFolderForm(request.POST)
 
@@ -594,6 +600,14 @@ def folder_create(request):
 
 @login_required	
 def file_create(request):
+    # check permissions
+    if not request.user.is_authenticated:
+        return redirect('{}?next={}'.format(settings.LOGIN_URL, request.path))
+    
+    if not request.user.is_admin:
+        return HttpResponse("Forbidden")
+
+    # the rest
 
     if request.method == 'POST':
 

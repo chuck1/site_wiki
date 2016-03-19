@@ -56,6 +56,9 @@ class Page(models.Model):
             through = 'PageGroupEdit')
     
     def get_parent_index_filename(self):
+        """
+        get the path of the index.html file in this folder
+        """
         #print 'get_parent_index_filename'
         #print self.path
         h,t = os.path.split(self.path)
@@ -66,38 +69,74 @@ class Page(models.Model):
         return os.path.join(h, 'index.html')
 
     def get_parent_index_page(self):
+        """
+        get the Page object corresponding to the index.html file in this folder
+        """
         try:
             p = Page.objects.get(path = self.get_parent_index_filename())
             return p
         except: return None
     
     def get_groups_view(self):
-        #print 'get groups view'
-
+        """
+        return a set of all PageGroupView objects for this and all ancestors
+        """
         s = set()
+        
         p = self.get_parent_index_page()
         if p:
             s = s.union(p.get_groups_view())
+
+        s = s.union(set(self.groups_view.all()))
+
+        print "get_group_view page={} s={}".format(repr(self.path), s)
+
+        return s
+
+    def get_groups_edit(self):
+        """
+        return a set of all PageGroupEdit objects for this and all ancestors
+        """
+        s = set()
+        
+        p = self.get_parent_index_page()
+        if p:
+            s = s.union(p.get_groups_edit())
+
         s = s.union(set(self.groups_view.all()))
         return s
 
     def check_perm_view(self, user):
         print 'check_perm_view', user
-        #print 'parent index'
-        #print self.get_parent_index_filename()
-        print 'groups'
-        s = self.get_groups_view()
-        print s
-        b = [bool(user in g.users.all()) for g in s]
-	print b
+        if not user.is_authenticated: 
+            print "not authenticated user"
+            return False
         
-        print all(b)
+        if user.is_admin: return True
+        
+        s = self.get_groups_view()
+        
+        b = [bool(user in g.users.all()) for g in s]
         
         return all(b)
 
     def check_perm_edit(self, user):
         print 'check_perm_edit', user
-        return user.is_admin
+
+        if not user.is_authenticated: 
+            print "not authenticated user"
+            return False
+        if user.is_admin: return True
+        
+        s = set()
+        
+        p = self.get_parent_index_page()
+        if p:
+            s = s.union(p.get_groups_edit())
+
+        s = s.union(set(self.groups_edit.all()))
+
+        return s
 
     def get_build_abspath(self):
         h,e = os.path.splitext(self.path)
