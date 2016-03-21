@@ -58,11 +58,13 @@ def task_edit(request, task_id):
 	    if form.is_valid():
 
 		name = form.cleaned_data['name']
+		notes = form.cleaned_data['notes']
 		priority = form.cleaned_data['priority']
                 bool_wait_for_feedback = form.cleaned_data["bool_wait_for_feedback"]
                 parent = form.cleaned_data["parent"]
 
 		task.name = name
+		task.notes = notes
 		task.priority = priority
 		task.bool_wait_for_feedback = bool_wait_for_feedback
                 task.parent = parent
@@ -75,6 +77,7 @@ def task_edit(request, task_id):
 	
         form = TaskEditForm(initial={
             'name':task.name,
+            'notes':task.notes,
             'priority':task.priority,
             "bool_wait_for_feedback":task.bool_wait_for_feedback,
             "parent":task.parent})
