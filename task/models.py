@@ -68,6 +68,23 @@ class Task(models.Model):
             #print 'b ',b
             return b
 
+        def get_event(self, event_type):
+            q = self.taskevent_set.filter(Q(event_type=event_type))
+            
+            if not q: return None
+
+            dt = q.aggregate(Max('event_datetime'))['event_datetime__max']
+            q2 = q.filter(event_datetime=dt)
+
+            return q2[0]
+
+        def get_datetime_end(self):
+
+            ev = self.get_event(TaskEvent.TYPE_DATETIME_END)
+        
+            if ev is None: return None
+
+            return ev.datetime
 
 	def __unicode__(self):
             #return self.name
@@ -88,12 +105,19 @@ class Task(models.Model):
 
 class TaskEvent(models.Model):
     task = models.ForeignKey(Task)
+    
     TYPE_OPEN = 0
     TYPE_CLOSE = 1
+    TYPE_DATETIME_END = 2
+    
     TYPE_CHOICES = (
             (TYPE_OPEN, 'open'),
-            (TYPE_CLOSE, 'close'))
+            (TYPE_CLOSE, 'close'),
+            (TYPE_DATETIME_END, 'datetime end'))
+
     event_type = models.IntegerField(choices=TYPE_CHOICES)
+
+    datetime = models.DateTimeField(blank=True, null=True)
 
     event_datetime = models.DateTimeField(auto_now_add=True)
 

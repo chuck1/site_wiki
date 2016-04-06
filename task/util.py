@@ -1,9 +1,10 @@
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 from .models import Task
 
 import xml.etree.ElementTree as ET
-
+import pytz
 import numpy
 
 class StyleGenerator(object):
@@ -71,6 +72,15 @@ def func_item(e, d):
 	e.attrib['style'] = "padding-left:{}px".format(d*20)
 	return e
 
+def table_datetime_end(tr, i):
+        # datetime end
+        td = ET.SubElement(tr, 'td')
+        dt = i.get_datetime_end()
+        if dt is not None:
+            dt2 = dt.astimezone(pytz.timezone(settings.TIME_ZONE))
+            td.text = dt2.strftime("%Y/%m/%d %H:%M")
+            #td.text = repr()
+
 def func(parent, i, e, d, styleGen):
 	#t = ET.SubElement(e, 'table')
 	tr = ET.SubElement(e, 'tr')
@@ -104,6 +114,7 @@ def func(parent, i, e, d, styleGen):
 	ip.attrib['type'] = 'submit'
 	ip.attrib['value'] = 'close'
 
+
         if not i.hide_children:
             td = ET.SubElement(tr, 'td')
             f = ET.SubElement(td, 'form')
@@ -122,6 +133,8 @@ def func(parent, i, e, d, styleGen):
             ip.attrib['value'] = '+'
             #ip.attrib['onclick'] = "collapse(this, false)"
             ip.attrib['data-id'] = str(i.id)
+
+        table_datetime_end(tr, i)
 
 	td = ET.SubElement(tr, 'td')
 	
