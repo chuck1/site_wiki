@@ -144,7 +144,7 @@ EMAIL_USE_TLS = True
 #EMAIL_USE_SSL = False
 #EMAIL_HOST_USER = "charles.rymal@nortek.com"
 EMAIL_HOST_USER = "CR3B88@nortek.com"
-EMAIL_HOST_PASSWORD = "Alpineglacier1"
+EMAIL_HOST_PASSWORD = "Alpineglacierlemon1"
 
 prefix = '/site_work/'
 

@@ -23,6 +23,9 @@ def confirmation(request, code):
     return HttpResponse('confirmation success')
 
 def register(request):
+
+    message = None
+
     if request.method == 'POST':
         nxt = request.POST['next']
 
@@ -35,8 +38,7 @@ def register(request):
                     form.cleaned_data['email'],
                     form.cleaned_data['pass0'],)
             except Exception as e:
-                print 'register failure',e
-                pass
+                message = "register failure {}".format(repr(e))
             else:
                 print 'register success'
 
@@ -45,16 +47,16 @@ def register(request):
                         '<br><a href="{}">'
                         'return to login</a>'.format(href))
         else:
-            print 'register failure'
+            message = "register failure form invalid"
     else:
         print 'register start'
         form = Register()
         nxt = request.GET['next']
 
     c = {
+            'message': message,
                 'form': form,
-                'next': nxt,
-                }
+                'next': nxt}
     return render(request, 'myauth/register.html', c)
 
 def address_next(request):
