@@ -13,3 +13,6 @@ class Sheet(models.Model):
     def set_data(self):
         pass
 
+    def __unicode__(self):
+        return "{}".format(self.id)
+

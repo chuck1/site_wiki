@@ -104,17 +104,17 @@ def launch_process(sheet):
 
 
 def sheet(request, sheet_id):
-    #sessid,
-    #cookie_out, 
-    #cookie_in, 
-    #display_func, 
-    #debug_lines):
-
-    print request.session
+    """
+    the actual view
+    """
 
     sheet = get_object_or_404(sheets.models.Sheet, pk=sheet_id)
-    
+
+    # permissions
     assert(request.user == sheet.user)
+    
+    message = ""
+
 
     #debug_default(
     #        debug_lines,
@@ -130,19 +130,33 @@ def sheet(request, sheet_id):
     if sheet.port == -1:
         launch_process(sheet)
     else:
-        print "test connection"
+        message += "test connection<br>"
         
         try:
             test_connection(sheet.port)
         except:
             launch_process(sheet)
         else:
-            print "connection success"
+            message += "connection success<br>"
 
     unlock_sheet_sock()
 
     sheetdata = get_sheet(sheet.port) #sessid)
     
+    message+= " {} ".format(sheet.port)
+    
+
+    # process button click
+
+    if request.method == "POST":
+        #message = "btn=" + request.POST["btn"]
+        message += repr(request.POST)
+        try:
+            message += " "+request.POST[u"btn"]
+        except: pass
+
+    elif request.method == "GET":
+        message += "GET"
     
     
     #html  = et.tostring(form_sheet_ctrl(sessid))
@@ -155,6 +169,7 @@ def sheet(request, sheet_id):
             "html": html,
             #"debug_lines": "\n".join("<pre>"+l+"</pre>" for l in debug_lines),
             #"debug": debug,
+            "message": message,
             }
 
     return render(request, "sheets/sheet.html", c)

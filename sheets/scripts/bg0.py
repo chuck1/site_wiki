@@ -67,7 +67,6 @@ input_list = [srv]
 
 
 def send(s, buf):
-
     s.send(struct.pack("i", len(buf)))
     s.send(buf)
 

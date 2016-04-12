@@ -6,13 +6,16 @@
 {% endblock %}
 
 {% block content %}
-<form>
-<input type="submit" name="btn add row" value="add row"/>
-<input type="submit" name="btn add col" value="add col"/>
-<input type="submit" name="btn show type" value="show type"/>
-<input type="submit" name="btn show raw" value="show raw"/>
-<input type="submit" name="btn show" value="show"/>
-<input type="hidden" name="sessid" value="{{ sessid }}"/>
+
+{{ message }}<br><br>
+
+<form method="post">
+{% csrf_token %}
+<input type="submit" name="btn" value="add row"/>
+<input type="submit" name="btn" value="add col"/>
+<input type="submit" name="btn" value="show type"/>
+<input type="submit" name="btn" value="show raw"/>
+<input type="submit" name="btn" value="show"/>
 <input type="" name="" value=""/>
 </form>
 
