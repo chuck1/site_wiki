@@ -414,7 +414,7 @@ def page2(request, path0, template_str, simple):
 
         # check permissions
         if not page.check_perm_view(request.user):
-            if request.user.is_anonymous():
+            if not request.user.is_authenticated():
 
                 # setting contains prefix
                 href = settings.LOGIN_URL

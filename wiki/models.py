@@ -126,17 +126,14 @@ class Page(models.Model):
         if not user.is_authenticated: 
             print "not authenticated user"
             return False
+
         if user.is_admin: return True
         
-        s = set()
+        s = self.get_groups_edit()
         
-        p = self.get_parent_index_page()
-        if p:
-            s = s.union(p.get_groups_edit())
+        b = [bool(user in g.users.all()) for g in s]
 
-        s = s.union(set(self.groups_edit.all()))
-
-        return s
+        return all(b)
 
     def get_build_abspath(self):
         h,e = os.path.splitext(self.path)
