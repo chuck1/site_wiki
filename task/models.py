@@ -14,6 +14,7 @@ class Task(models.Model):
         
         parent = models.ForeignKey('Task', blank=True, null=True)
 	
+
 	user_create = models.ForeignKey(settings.AUTH_USER_MODEL,
 		related_name='task_create')
 	user_assign = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -68,7 +69,23 @@ class Task(models.Model):
             #print 'b ',b
             return b
 
+        def get_event2(self, q):
+            """
+            get the event matching q for this task with the greatest event_datetime
+            """
+            q = self.taskevent_set.filter(q)
+            
+            if not q: return None
+
+            dt = q.aggregate(Max('event_datetime'))['event_datetime__max']
+            q2 = q.filter(event_datetime=dt)
+
+            return q2[0]
+
         def get_event(self, event_type):
+            """
+            get the event of type event_type for this task with the greatest event_datetime
+            """
             q = self.taskevent_set.filter(Q(event_type=event_type))
             
             if not q: return None
@@ -79,9 +96,31 @@ class Task(models.Model):
             return q2[0]
 
         def get_datetime_end(self):
+            """
+            find datetime_end or duration event with greatest event_datetime
+            if it is a duration event, use start to calculate end
+            
+            """
 
-            ev = self.get_event(TaskEvent.TYPE_DATETIME_END)
-        
+            q = Q(event_type=TaskEvent.TYPE_DATETIME_END) | Q(event_type=TaskEvent.TYPE_DURATION)
+
+            ev = self.get_event2(q)
+            
+            if ev is None: return None
+
+            if ev.event_type == TaskEvent.TYPE_DURATION:
+                start = self.get_datetime_start()
+                if start is None:
+                    return None
+                
+                return start + datetime.timedelta(days=duration/8.0)
+
+            elif ev.event_type == TaskEvent.TYPE_DATETIME_END:
+                return ev.datetime
+
+        def get_datetime_start(self):
+            ev = self.get_event(TaskEvent.TYPE_DATETIME_START)
+
             if ev is None: return None
 
             return ev.datetime
@@ -95,7 +134,7 @@ class Task(models.Model):
 			return self.parent.get_task_root()
 		else:
 			return self
-	
+
 	def get_task_line(self):
 		line = []
 		if self.parent is not None:
@@ -108,16 +147,27 @@ class TaskEvent(models.Model):
     
     TYPE_OPEN = 0
     TYPE_CLOSE = 1
+    TYPE_DATETIME_START = 4
     TYPE_DATETIME_END = 2
+    TYPE_DURATION = 3
+    TYPE_PRECEDENT_ADD = 5
+    TYPE_PRECEDENT_REMOVE = 6
     
     TYPE_CHOICES = (
             (TYPE_OPEN, 'open'),
             (TYPE_CLOSE, 'close'),
-            (TYPE_DATETIME_END, 'datetime end'))
-
+            (TYPE_DATETIME_START, 'datetime start'),
+            (TYPE_DATETIME_END, 'datetime end'),
+            (TYPE_DURATION, 'duration'),
+            (TYPE_PRECEDENT_ADD, 'precedent add'),
+            (TYPE_PRECEDENT_REMOVE, 'precedent remove'),
+            )
+    
     event_type = models.IntegerField(choices=TYPE_CHOICES)
 
     datetime = models.DateTimeField(blank=True, null=True)
+    duration = models.FloatField(blank=True, null=True)
+    precedent = models.ForeignKey(Task, blank=True, null=True, related_name = "taskevent_precedent")
 
     event_datetime = models.DateTimeField(auto_now_add=True)
 

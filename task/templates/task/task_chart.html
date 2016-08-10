@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'wiki/default.css' %}"></link>
+{% endblock %}
+
+{% block content %}
+<h1>Task Chart</h1>
+
+<table>
+{% for t, s, e, series in rows %}
+<tr><td>{{t.name}}</td>
+	{% for s1 in series %}
+	<td>
+		{% if s1 %}x{% endif %}
+	</td>
+	{% endfor %}
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}
+

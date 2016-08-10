@@ -1,8 +1,11 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
+from django.conf import settings
+import django.utils.timezone
 
+import pytz
 import numpy
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -42,6 +45,52 @@ def task_list(request):
 	
         return render(request, 'task/task_list.html', {'tree_html': el, 
             'next': '/task/task_list'})
+
+@login_required
+def task_chart(request):
+    user = request.user
+
+    tasks_create = user.task_create.all()
+    tasks_shared_with = user.task_shared_with.all()
+	
+    lst = list(tasks_create) + list(tasks_shared_with)
+
+    lst = filter(lambda x: (x.get_datetime_start() is not None) and (x.get_datetime_end() is not None), lst)
+  
+    dt_now = django.utils.timezone.now()
+
+    rows = []
+
+    print "task chart"
+    for t in lst:
+        s = t.get_datetime_start()
+        e = t.get_datetime_end()
+
+        delta_s = s.date() - dt_now.date()
+        delta_e = e.date() - dt_now.date()
+
+        delta_s_days = int(delta_s.total_seconds() / (60.0*60.0*24.0))
+        delta_e_days = int(delta_e.total_seconds() / (60.0*60.0*24.0))
+        
+        N = 30
+
+        series = [False]*N
+        
+        
+
+        for i in range(max(delta_s_days,0), min(delta_e_days + 1,N)):
+            series[i] = True
+
+        print "{0:64} {1:16} {2:16}".format(t, s.astimezone(pytz.timezone(settings.TIME_ZONE)).strftime("%Y/%m/%d %H:%M"), e.astimezone(pytz.timezone(settings.TIME_ZONE)).strftime("%Y/%m/%d %H:%M"))
+    
+        
+        rows.append((t, delta_s_days, delta_e_days, series))
+    
+    context = {
+            'rows': rows, 
+            'next': '/task/task_chart'}
+
+    return render(request, 'task/task_chart.html', context)
 
 @login_required
 def task_edit(request, task_id):
