@@ -72,10 +72,21 @@ def func_item(e, d):
 	e.attrib['style'] = "padding-left:{}px".format(d*20)
 	return e
 
+def table_datetime_start(tr, i):
+        # datetime end
+        td = ET.SubElement(tr, 'td')
+        dt = i.get_datetime_start()
+
+        if dt is not None:
+            dt2 = dt.astimezone(pytz.timezone(settings.TIME_ZONE))
+            td.text = dt2.strftime("%Y/%m/%d %H:%M")
+            #td.text = repr()
+
 def table_datetime_end(tr, i):
         # datetime end
         td = ET.SubElement(tr, 'td')
         dt = i.get_datetime_end()
+
         if dt is not None:
             dt2 = dt.astimezone(pytz.timezone(settings.TIME_ZONE))
             td.text = dt2.strftime("%Y/%m/%d %H:%M")
@@ -134,6 +145,7 @@ def func(parent, i, e, d, styleGen):
             #ip.attrib['onclick'] = "collapse(this, false)"
             ip.attrib['data-id'] = str(i.id)
 
+        table_datetime_start(tr, i)
         table_datetime_end(tr, i)
 
 	td = ET.SubElement(tr, 'td')

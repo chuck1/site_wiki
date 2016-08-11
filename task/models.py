@@ -113,7 +113,15 @@ class Task(models.Model):
                 if start is None:
                     return None
                 
-                return start + datetime.timedelta(days=duration/8.0)
+                end = start + datetime.timedelta(hours=duration)
+                
+                if end.hour > 16:
+                    end = end + datetime.timedelta(hours=15)
+
+                if end.weekday() > 4:
+                    end = end + datetime.timedelta(days=2)
+
+                return 
 
             elif ev.event_type == TaskEvent.TYPE_DATETIME_END:
                 return ev.datetime
@@ -121,9 +129,27 @@ class Task(models.Model):
         def get_datetime_start(self):
             ev = self.get_event(TaskEvent.TYPE_DATETIME_START)
 
-            if ev is None: return None
+            if ev is not None:
+                return ev.datetime
 
-            return ev.datetime
+            self.get_precedents()
+
+
+        def get_precedents(self):
+
+            p = []
+
+            query = self.taskevent_set.filter(Q(event_type=TaskEvent.TYPE_PRECEDENT_ADD)|Q(event_type=TaskEvent.TYPE_PRECEDENT_REMOVE)).order_by("event_datetime")
+            
+            if not query: return
+            
+            print "precedents"
+            for e in query:
+                if e.event_type == TaskEvent.TYPE_PRECEDENT_ADD:
+                    p.append(e.precedent)
+
+                print e.event_type, "task=", e.precedent
+            
 
 	def __unicode__(self):
             #return self.name
@@ -147,9 +173,9 @@ class TaskEvent(models.Model):
     
     TYPE_OPEN = 0
     TYPE_CLOSE = 1
-    TYPE_DATETIME_START = 4
     TYPE_DATETIME_END = 2
     TYPE_DURATION = 3
+    TYPE_DATETIME_START = 4
     TYPE_PRECEDENT_ADD = 5
     TYPE_PRECEDENT_REMOVE = 6
     
@@ -170,6 +196,9 @@ class TaskEvent(models.Model):
     precedent = models.ForeignKey(Task, blank=True, null=True, related_name = "taskevent_precedent")
 
     event_datetime = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return str(self.task) + " " + str(self.event_type)
 
 class TaskUserSharedWith(models.Model):
     task = models.ForeignKey('Task')
