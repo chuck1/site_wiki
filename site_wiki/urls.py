@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 import myauth.views
-import wiki.views
 import task.views
 import site_wiki.views
 
@@ -29,7 +28,6 @@ urlpatterns = [
     url(r'^accounts/logout/$', myauth.views.logout, name="accounts_logout"),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^myauth/',  include('myauth.urls')),
-    url(r'^wiki/',   include('wiki.urls')),
     url(r'^task/',   include('task.urls')),
     url(r'^sheets/', include('sheets.urls')),
     #url(r'^([\w\/]+)$', wiki.views.page, name='page'),

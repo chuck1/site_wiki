@@ -53,7 +53,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myauth',
-    'wiki',
     'task',
     'sheets',
 )
